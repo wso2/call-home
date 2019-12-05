@@ -15,31 +15,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.updates.info.callhome;
-
-import org.wso2.carbon.updates.info.callhome.updates.Updates;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-
+package org.wso2.callhome;
 
 /**
- * The CallHome program implements an application that uses WSO2 Update servers to check whether there are new
+ * This agent connects to the WSO2 Update servers to check whether there are new
  * updates available for the running product and notify users accordingly.
  *
- * @version 1.0.0
  * @since 1.0.0
  */
-public class CallHome {
-
-    /**
-     * This is the main method which makes use of getOs, getUsername and getUpdateLevel methods.
-     *
-     * @param args Unused
-     * @throws IOException If an IO exception occurs
-     */
-    public static void main(String[] args) throws IOException, URISyntaxException {
-        Updates update = new Updates();
-        update.displayUpdateLevelInfo();
+public class Agent {
+    public static void premain(@SuppressWarnings("unused") final String agentArgument) {
+        Thread agentThread = new Thread(executeCallHome);
+        agentThread.setDaemon(true);
+        agentThread.setName("CallHomeAgent");
+        agentThread.start();
     }
+
+    private static Runnable executeCallHome = () -> {
+        CallHome callHome = new CallHome();
+        callHome.execute();
+    };
 }
