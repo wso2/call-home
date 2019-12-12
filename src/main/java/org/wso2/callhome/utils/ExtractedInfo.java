@@ -23,49 +23,71 @@ package org.wso2.callhome.utils;
  * @since 1.0.0
  */
 public class ExtractedInfo {
+
+    private String channel;
     private String userName;
     private String productName;
     private String productVersion;
     private String operatingSystem;
     private long updateLevel;
 
+    public String getChannel() {
+
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+
+        this.channel = channel;
+    }
+
     public String getUserName() {
+
         return userName;
     }
 
     public void setUserName(String userName) {
+
         this.userName = userName;
     }
 
     public String getProductName() {
+
         return productName;
     }
 
     public void setProductName(String productName) {
+
         this.productName = productName;
     }
 
     public String getProductVersion() {
+
         return productVersion;
     }
 
     public void setProductVersion(String productVersion) {
+
         this.productVersion = productVersion;
     }
 
     public String getOperatingSystem() {
+
         return operatingSystem;
     }
 
     public void setOperatingSystem(String operatingSystem) {
+
         this.operatingSystem = operatingSystem;
     }
 
     public long getUpdateLevel() {
+
         return updateLevel;
     }
 
     public void setUpdateLevel(long updateLevel) {
+
         this.updateLevel = updateLevel;
     }
 }
