@@ -50,28 +50,33 @@ import static java.lang.System.getProperty;
  * @since 1.0.0
  */
 class CallHome {
+
     private static final Logger logger = Logger.getLogger(CallHome.class.getName());
     private static final String USERNAME = "username";
     private static final String OS_NAME = "os.name";
     private static final String CALL_HOME_ENDPOINT = "https://api.updates.wso2.com/call-home/v1.0.0/check-update";
     private static final String ACCESS_TOKEN = "c0ba3727-e7ec-31d3-9dc2-528f30c387af";
     private static final int RETRY_DELAY = 10000;
-    public static final int HTTP_CONNECTION_TIMEOUT = 10000;
+    private static final int HTTP_CONNECTION_TIMEOUT = 10000;
+    private static final String CHANNEL = "channel";
 
     /**
      * This method executes in order to retrieve the required data.
      */
     void execute() {
+
         try {
             String productNameAndVersion = getProductNameAndVersion();
             long updateLevel = getUpdateLevel();
-            String userDetails = getUserEmail();
+            String channel = getInfoFromConfigYaml(CHANNEL);
+            String userDetails = getInfoFromConfigYaml(USERNAME);
             String operatingSystem = getOSDetails();
 
             String productName = extractProductName(productNameAndVersion);
             String productVersion = extractProductVersion(productNameAndVersion);
 
             ExtractedInfo extractedInfo = new ExtractedInfo();
+            extractedInfo.setChannel(channel);
             extractedInfo.setUserName(userDetails);
             extractedInfo.setProductName(productName);
             extractedInfo.setProductVersion(productVersion);
@@ -92,6 +97,7 @@ class CallHome {
      * @return String The product home path
      */
     private String getProductHome() throws CallHomeException {
+
         try {
             return new File(CallHome.class.getProtectionDomain().getCodeSource().getLocation()
                     .toURI()).getParentFile().getParent();
@@ -108,6 +114,7 @@ class CallHome {
      * @return Index of the last "-" character
      */
     private int getLastIndexOfHyphen(String productDetails) {
+
         return productDetails.lastIndexOf('-');
     }
 
@@ -118,6 +125,7 @@ class CallHome {
      * @return Name of the product
      */
     private String extractProductName(String productNameAndVersion) {
+
         return productNameAndVersion.substring(0, getLastIndexOfHyphen(productNameAndVersion));
     }
 
@@ -128,6 +136,7 @@ class CallHome {
      * @return Version of the product
      */
     private String extractProductVersion(String productNameAndVersion) {
+
         return productNameAndVersion.substring(getLastIndexOfHyphen(productNameAndVersion) + 1);
     }
 
@@ -139,6 +148,7 @@ class CallHome {
      * @throws FileNotFoundException File not found in the given path
      */
     private Map readYaml(String yamlPath) throws FileNotFoundException {
+
         Yaml yaml = new Yaml();
         Map<String, String> configs = Collections.emptyMap();
         if (Files.exists(Paths.get(yamlPath))) {
@@ -150,23 +160,24 @@ class CallHome {
     }
 
     /**
-     * This method reads the user's email address from the config.yaml.
+     * This method reads the required information from the config.yaml.
      *
-     * @return Email address of the user
+     * @param info The required information to be retrieved from the config.yaml
+     * @return The necessary information the user
      * @throws CallHomeException If the config.yaml is not available
      */
-    private String getUserEmail() throws CallHomeException {
+    private String getInfoFromConfigYaml(String info) throws CallHomeException {
+
         String configPath = Paths.get(getProductHome(), "updates", "config.yaml").toString();
-        String userEmail = "";
         try {
             Map configs = readYaml(configPath);
-            if (configs.containsKey(USERNAME)) {
-                userEmail = (String) configs.get(USERNAME);
+            if (configs.containsKey(info)) {
+                info = (String) configs.get(info);
             }
         } catch (FileNotFoundException e) {
             logger.fine("Config yaml not found " + e.toString());
         }
-        return userEmail;
+        return info;
     }
 
     /**
@@ -177,6 +188,7 @@ class CallHome {
      *                           it is unable to read the content of the file.
      */
     private String getProductNameAndVersion() throws CallHomeException {
+
         Path productTxtPath = Paths.get(getProductHome(), "updates", "product.txt");
         if (!Files.exists(productTxtPath)) {
             logger.fine("Unable to find the product.txt file");
@@ -199,6 +211,7 @@ class CallHome {
      * @return Operating system of the user
      */
     private String getOSDetails() {
+
         return getProperty(OS_NAME);
     }
 
@@ -209,6 +222,7 @@ class CallHome {
      * @throws CallHomeException If it is unable to get the list of files in the updates/wum directory
      */
     private long getUpdateLevel() throws CallHomeException {
+
         File updatesDirectory = Paths.get(getProductHome(), "updates", "wum").toFile();
         File[] listOfFiles = updatesDirectory.listFiles();
 
@@ -226,6 +240,7 @@ class CallHome {
      * @return The last updated timestamp
      */
     private long getLastUpdateLevel(File[] listOfFiles) {
+
         long lastUpdateLevel = 0L;
         for (File listOfFile : listOfFiles) {
             if (listOfFile.isFile()) {
@@ -244,10 +259,12 @@ class CallHome {
      * @return Endpoint URL
      */
     private URL constructCallHomeURL(ExtractedInfo extractedInfo) throws CallHomeException {
+
         String productName = extractedInfo.getProductName();
         String productVersion = extractedInfo.getProductVersion();
         String userName = extractedInfo.getUserName();
         String operatingSystem = extractedInfo.getOperatingSystem();
+        String channel = extractedInfo.getChannel();
         long updateLevel = extractedInfo.getUpdateLevel();
         try {
             return new URL(CALL_HOME_ENDPOINT +
@@ -255,7 +272,8 @@ class CallHome {
                     "&product-name=" + productName +
                     "&product-version=" + productVersion +
                     "&operating-system=" + operatingSystem +
-                    "&updates-level=" + updateLevel);
+                    "&updates-level=" + updateLevel +
+                    "&channel=" + channel);
         } catch (MalformedURLException e) {
             logger.fine("Error while creating URL for the CallHome endpoint " + e.getMessage());
             throw new CallHomeException("Error while creating URL for the CallHome endpoint", e);
@@ -270,6 +288,7 @@ class CallHome {
      * @throws IOException If an error occurs while creating an HTTP connection
      */
     private HttpsURLConnection createHttpsURLConnection(URL url) throws IOException {
+
         HttpsURLConnection connection;
         connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestProperty("Content-Type", "application/json");
@@ -287,6 +306,7 @@ class CallHome {
      * @return Response from the server
      */
     private String getResponse(HttpsURLConnection httpsURLConnection) throws CallHomeException {
+
         StringBuilder response = new StringBuilder();
         try {
             int responseCode = httpsURLConnection.getResponseCode();
@@ -316,6 +336,7 @@ class CallHome {
      * @throws CallHomeException If an error occurs while retrieving information from the CallHome server
      */
     private String retrieveUpdateInfoFromServer(ExtractedInfo extractedInfo) throws CallHomeException {
+
         URL url = constructCallHomeURL(extractedInfo);
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
@@ -347,13 +368,13 @@ class CallHome {
         throw new CallHomeException("Enable to retrieve updates information from server");
     }
 
-
     /**
      * This method logs the message.
      *
      * @param msg Message to be logged
      */
     private void printUpdateInfo(String msg) {
+
         logger.info(msg);
     }
 }
