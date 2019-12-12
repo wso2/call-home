@@ -95,6 +95,7 @@ class CallHome {
      * This method returns the product home path.
      *
      * @return String The product home path
+     * @throws CallHomeException If it is unable to get the product home path
      */
     private String getProductHome() throws CallHomeException {
 
@@ -257,6 +258,7 @@ class CallHome {
      *
      * @param extractedInfo ExtractedInfo object
      * @return Endpoint URL
+     * @throws CallHomeException If it is enable to construct the CallHome URL
      */
     private URL constructCallHomeURL(ExtractedInfo extractedInfo) throws CallHomeException {
 
@@ -304,6 +306,7 @@ class CallHome {
      *
      * @param httpsURLConnection HTTPS connection
      * @return Response from the server
+     * @throws CallHomeException If an error occurs while getting the response
      */
     private String getResponse(HttpsURLConnection httpsURLConnection) throws CallHomeException {
 
