@@ -52,13 +52,11 @@ import static java.lang.System.getProperty;
 class CallHome {
 
     private static final Logger logger = Logger.getLogger(CallHome.class.getName());
-    private static final String USERNAME = "username";
     private static final String OS_NAME = "os.name";
     private static final String CALL_HOME_ENDPOINT = "https://api.updates.wso2.com/call-home/v1.0.0/check-update";
     private static final String ACCESS_TOKEN = "c0ba3727-e7ec-31d3-9dc2-528f30c387af";
     private static final int RETRY_DELAY = 10000;
     private static final int HTTP_CONNECTION_TIMEOUT = 10000;
-    private static final String CHANNEL = "channel";
 
     /**
      * This method executes in order to retrieve the required data.
@@ -68,8 +66,7 @@ class CallHome {
         try {
             String productNameAndVersion = getProductNameAndVersion();
             long updateLevel = getUpdateLevel();
-            String channel = getInfoFromConfigYaml(CHANNEL);
-            String userDetails = getInfoFromConfigYaml(USERNAME);
+            String channel = getChannelFromConfigYaml();
             String operatingSystem = getOSDetails();
 
             String productName = extractProductName(productNameAndVersion);
@@ -77,7 +74,6 @@ class CallHome {
 
             ExtractedInfo extractedInfo = new ExtractedInfo();
             extractedInfo.setChannel(channel);
-            extractedInfo.setUserName(userDetails);
             extractedInfo.setProductName(productName);
             extractedInfo.setProductVersion(productVersion);
             extractedInfo.setOperatingSystem(operatingSystem);
@@ -163,22 +159,22 @@ class CallHome {
     /**
      * This method reads the required information from the config.yaml.
      *
-     * @param info The required information to be retrieved from the config.yaml
      * @return The necessary information the user
      * @throws CallHomeException If the config.yaml is not available
      */
-    private String getInfoFromConfigYaml(String info) throws CallHomeException {
+    private String getChannelFromConfigYaml() throws CallHomeException {
 
+        String channel = "";
         String configPath = Paths.get(getProductHome(), "updates", "config.yaml").toString();
         try {
             Map configs = readYaml(configPath);
-            if (configs.containsKey(info)) {
-                info = (String) configs.get(info);
+            if (configs.containsKey("channel")) {
+                channel = (String) configs.get("channel");
             }
         } catch (FileNotFoundException e) {
             logger.fine("Config yaml not found " + e.toString());
         }
-        return info;
+        return channel;
     }
 
     /**
@@ -264,13 +260,11 @@ class CallHome {
 
         String productName = extractedInfo.getProductName();
         String productVersion = extractedInfo.getProductVersion();
-        String userName = extractedInfo.getUserName();
         String operatingSystem = extractedInfo.getOperatingSystem();
         String channel = extractedInfo.getChannel();
         long updateLevel = extractedInfo.getUpdateLevel();
         try {
             return new URL(CALL_HOME_ENDPOINT +
-                    "?email=" + userName +
                     "&product-name=" + productName +
                     "&product-version=" + productVersion +
                     "&operating-system=" + operatingSystem +
@@ -341,6 +335,7 @@ class CallHome {
     private String retrieveUpdateInfoFromServer(ExtractedInfo extractedInfo) throws CallHomeException {
 
         URL url = constructCallHomeURL(extractedInfo);
+        logger.info(String.valueOf(url));
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
                 HttpsURLConnection connection = createHttpsURLConnection(url);
