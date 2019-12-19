@@ -53,8 +53,8 @@ class CallHome {
 
     private static final Logger logger = Logger.getLogger(CallHome.class.getName());
     private static final String OS_NAME = "os.name";
-    private static final String CALL_HOME_ENDPOINT = "https://api.updates.wso2.com/call-home/v1.0.0/check-update";
-    private static final String ACCESS_TOKEN = "c0ba3727-e7ec-31d3-9dc2-528f30c387af";
+    private static final String CALL_HOME_ENDPOINT = "https://api.updates.wso2.com/call-home/v1.0.0/check-updates";
+    private static final String ACCESS_TOKEN = "45ffddfa-281c-36df-9fd0-d806c3f607ca";
     private static final int RETRY_DELAY = 10000;
     private static final int HTTP_CONNECTION_TIMEOUT = 10000;
 
@@ -159,7 +159,7 @@ class CallHome {
     /**
      * This method reads the channel information from the config.yaml.
      *
-     * @return The necessary information the user
+     * @return The channel used to update the product
      * @throws CallHomeException If the config.yaml is not available
      */
     private String getChannelFromConfigYaml() throws CallHomeException {
@@ -265,7 +265,7 @@ class CallHome {
         long updateLevel = extractedInfo.getUpdateLevel();
         try {
             return new URL(CALL_HOME_ENDPOINT +
-                    "&product-name=" + productName +
+                    "?product-name=" + productName +
                     "&product-version=" + productVersion +
                     "&operating-system=" + operatingSystem +
                     "&updates-level=" + updateLevel +
@@ -335,7 +335,6 @@ class CallHome {
     private String retrieveUpdateInfoFromServer(ExtractedInfo extractedInfo) throws CallHomeException {
 
         URL url = constructCallHomeURL(extractedInfo);
-        logger.info(String.valueOf(url));
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
                 HttpsURLConnection connection = createHttpsURLConnection(url);
