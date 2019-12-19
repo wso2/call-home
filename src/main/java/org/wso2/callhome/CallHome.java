@@ -157,7 +157,7 @@ class CallHome {
     }
 
     /**
-     * This method reads the required information from the config.yaml.
+     * This method reads the channel information from the config.yaml.
      *
      * @return The necessary information the user
      * @throws CallHomeException If the config.yaml is not available
