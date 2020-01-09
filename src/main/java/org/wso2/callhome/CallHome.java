@@ -199,7 +199,7 @@ class CallHome {
             logger.fine("Unable to read the product.txt content");
             throw new CallHomeException("Unable to read the product.txt content", e);
         }
-        return new String(productTxtContent, StandardCharsets.UTF_8);
+        return new String(productTxtContent, StandardCharsets.UTF_8).trim();
     }
 
     /**
