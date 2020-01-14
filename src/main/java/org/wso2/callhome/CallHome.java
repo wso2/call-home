@@ -29,10 +29,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -265,14 +267,17 @@ class CallHome {
         long updateLevel = extractedInfo.getUpdateLevel();
         try {
             return new URL(CALL_HOME_ENDPOINT +
-                    "?product-name=" + productName +
-                    "&product-version=" + productVersion +
-                    "&operating-system=" + operatingSystem +
-                    "&updates-level=" + updateLevel +
-                    "&channel=" + channel);
+                    "?product-name=" + URLEncoder.encode(productName, "UTF-8") +
+                    "&product-version=" + URLEncoder.encode(productVersion, "UTF-8") +
+                    "&operating-system=" + URLEncoder.encode(operatingSystem, "UTF-8") +
+                    "&updates-level=" + URLEncoder.encode(String.valueOf(updateLevel), "UTF-8") +
+                    "&channel=" + URLEncoder.encode(channel, "UTF-8"));
         } catch (MalformedURLException e) {
             logger.fine("Error while creating URL for the CallHome endpoint " + e.getMessage());
             throw new CallHomeException("Error while creating URL for the CallHome endpoint", e);
+        } catch (UnsupportedEncodingException e) {
+            logger.fine("Error while encoding URL" + e.getMessage());
+            throw new CallHomeException("Error while encoding URL");
         }
     }
 
