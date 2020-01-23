@@ -387,7 +387,7 @@ class CallHome implements Callable<String>, ServerStartupObserver {
                 log.debug("Error while trying to apply the retry delay");
             }
         }
-        throw new CallHomeException("Enable to retrieve updates information from server");
+        throw new CallHomeException("Unable to retrieve updates information from server");
     }
 
     @Override
