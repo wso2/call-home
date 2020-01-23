@@ -24,8 +24,13 @@
     <groupId>org.wso2.carbon.updateinfo</groupId>
     <artifactId>call-home</artifactId>
     <name>Call Home Client</name>
+<<<<<<< HEAD
     <version>1.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
+=======
+    <version>1.0.2-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+>>>>>>> Change CallHome to an OSGi bundle
     <modelVersion>4.0.0</modelVersion>
 
     <scm>
@@ -37,43 +42,50 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+            <version>3.14.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.core</artifactId>
+            <version>4.5.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.23</version>
         </dependency>
-        <dependency>
-            <groupId>org.json.wso2</groupId>
-            <artifactId>json</artifactId>
-            <version>3.0.0.wso2v1</version>
-        </dependency>
     </dependencies>
-    <properties>
-        <Agent-Class>org.wso2.callhome.Agent</Agent-Class>
-    </properties>
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>3.2.0</version>
+                <extensions>true</extensions>
                 <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifestEntries>
-                            <Premain-Class>org.wso2.callhome.Agent</Premain-Class>
-                        </manifestEntries>
-                    </archive>
+                    <instructions>
+                        <Bundle-Vendor>WSO2 Inc</Bundle-Vendor>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Activator>org.wso2.callhome.internal.CallHomeActivator</Bundle-Activator>
+                        <Private-Package>
+                            org.wso2.callhome.*
+                        </Private-Package>
+                        <Export-Package>
+                            !org.wso2.callhome.*
+                        </Export-Package>
+                        <Import-Package>
+                            org.osgi.framework; version="[1.9,2.0)",
+                            org.wso2.carbon.core; version="[4.5.0,4.6.0)",
+                            org.wso2.carbon.utils; version="[4.5.0,4.6.0)",
+                            org.apache.commons.logging,
+                        </Import-Package>
+                        <Embed-Dependency>
+                            snakeyaml;scope=compile|runtime;inline=false
+                        </Embed-Dependency>
+                    </instructions>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
