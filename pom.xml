@@ -24,7 +24,7 @@
     <groupId>org.wso2.carbon.updateinfo</groupId>
     <artifactId>call-home</artifactId>
     <name>Call Home Client</name>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,7 +32,7 @@
         <url>https://github.com/wso2/call-home.git</url>
         <developerConnection>scm:git:https://github.com/wso2/call-home.git</developerConnection>
         <connection>scm:git:https://github.com/wso2/call-home.git</connection>
-        <tag>HEAD</tag>
+        <tag>v1.0.2</tag>
     </scm>
 
     <dependencies>
