@@ -15,10 +15,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.callhome;
+package org.wso2.callhome.internal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.callhome.exception.CallHomeException;
 import org.wso2.callhome.utils.ExtractedInfo;
+import org.wso2.callhome.utils.PrintUtils;
+import org.wso2.carbon.core.ServerStartupObserver;
+import org.wso2.carbon.utils.CarbonUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedReader;
@@ -32,7 +37,6 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +45,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
-import java.util.logging.Logger;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.net.ssl.HttpsURLConnection;
 
 import static java.lang.System.getProperty;
@@ -51,20 +61,35 @@ import static java.lang.System.getProperty;
  *
  * @since 1.0.0
  */
-class CallHome {
+class CallHome implements Callable<String>, ServerStartupObserver {
 
-    private static final Logger logger = Logger.getLogger(CallHome.class.getName());
+    private static final Log log = LogFactory.getLog(CallHome.class);
     private static final String OS_NAME = "os.name";
     private static final String CALL_HOME_ENDPOINT = "https://api.updates.wso2.com/call-home/v1.0.0/check-updates";
     private static final String ACCESS_TOKEN = "45ffddfa-281c-36df-9fd0-d806c3f607ca";
     private static final int RETRY_DELAY = 10000;
     private static final int HTTP_CONNECTION_TIMEOUT = 10000;
+    public static final int CALL_HOME_TIMEOUT_SECONDS = 180;
+    public static final int LINE_LENGTH = 80;
+    private Future<String> callHomeResponse;
+    private String carbonProductHome;
 
     /**
-     * This method executes in order to retrieve the required data.
+     * This method registers the CallHome object (this) to an ${{@link ExecutorService}}.
      */
     void execute() {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        callHomeResponse = executorService.submit(this);
+    }
 
+    /**
+     * This method is executed by the ${{@link ExecutorService}} and will do series of steps
+     * to retrieve the update data.
+     *
+     * @return update response message
+     */
+    @Override
+    public String call() {
         try {
             String productNameAndVersion = getProductNameAndVersion();
             long updateLevel = getUpdateLevel();
@@ -82,28 +107,25 @@ class CallHome {
             extractedInfo.setUpdateLevel(updateLevel);
 
             String updateInfo = retrieveUpdateInfoFromServer(extractedInfo);
-            printUpdateInfo(updateInfo);
+            return updateInfo;
         } catch (CallHomeException e) {
-            logger.warning("Failed to get the number of updates available.");
-            logger.fine(e.toString());
+            log.warn("Failed to get the number of updates available.");
+            log.debug(e.toString());
         }
+        return "";
     }
 
     /**
      * This method returns the product home path.
      *
      * @return String The product home path
-     * @throws CallHomeException If it is unable to get the product home path
      */
-    private String getProductHome() throws CallHomeException {
+    private String getProductHome() {
 
-        try {
-            return new File(CallHome.class.getProtectionDomain().getCodeSource().getLocation()
-                    .toURI()).getParentFile().getParent();
-        } catch (URISyntaxException e) {
-            logger.fine("Cannot find product path " + e.getMessage());
-            throw new CallHomeException("Cannot find product path", e);
+        if (carbonProductHome == null) {
+            carbonProductHome = CarbonUtils.getCarbonHome();
         }
+        return carbonProductHome;
     }
 
     /**
@@ -162,9 +184,8 @@ class CallHome {
      * This method reads the channel information from the config.yaml.
      *
      * @return The channel used to update the product
-     * @throws CallHomeException If the config.yaml is not available
      */
-    private String getChannelFromConfigYaml() throws CallHomeException {
+    private String getChannelFromConfigYaml() {
 
         String channel = "";
         String configPath = Paths.get(getProductHome(), "updates", "config.yaml").toString();
@@ -174,7 +195,7 @@ class CallHome {
                 channel = (String) configs.get("channel");
             }
         } catch (FileNotFoundException e) {
-            logger.fine("Config yaml not found " + e.toString());
+            log.debug("Config yaml not found " + e.toString());
         }
         return channel;
     }
@@ -190,7 +211,7 @@ class CallHome {
 
         Path productTxtPath = Paths.get(getProductHome(), "updates", "product.txt");
         if (!Files.exists(productTxtPath)) {
-            logger.fine("Unable to find the product.txt file");
+            log.debug("Unable to find the product.txt file");
             throw new CallHomeException("Unable to find the product.txt file " + productTxtPath.toString());
         }
 
@@ -198,7 +219,7 @@ class CallHome {
         try {
             productTxtContent = Files.readAllBytes(productTxtPath);
         } catch (IOException e) {
-            logger.fine("Unable to read the product.txt content");
+            log.debug("Unable to read the product.txt content");
             throw new CallHomeException("Unable to read the product.txt content", e);
         }
         return new String(productTxtContent, StandardCharsets.UTF_8).trim();
@@ -218,9 +239,8 @@ class CallHome {
      * This method reads the last updated timestamp level of the product.
      *
      * @return Last updated timestamp
-     * @throws CallHomeException If it is unable to get the list of files in the updates/wum directory
      */
-    private long getUpdateLevel() throws CallHomeException {
+    private long getUpdateLevel() {
 
         File updatesDirectory = Paths.get(getProductHome(), "updates", "wum").toFile();
         File[] listOfFiles = updatesDirectory.listFiles();
@@ -273,10 +293,10 @@ class CallHome {
                     "&updates-level=" + URLEncoder.encode(String.valueOf(updateLevel), "UTF-8") +
                     "&channel=" + URLEncoder.encode(channel, "UTF-8"));
         } catch (MalformedURLException e) {
-            logger.fine("Error while creating URL for the CallHome endpoint " + e.getMessage());
+            log.debug("Error while creating URL for the CallHome endpoint " + e.getMessage());
             throw new CallHomeException("Error while creating URL for the CallHome endpoint", e);
         } catch (UnsupportedEncodingException e) {
-            logger.fine("Error while encoding URL" + e.getMessage());
+            log.debug("Error while encoding URL" + e.getMessage());
             throw new CallHomeException("Error while encoding URL");
         }
     }
@@ -324,7 +344,7 @@ class CallHome {
                 }
             }
         } catch (IOException e) {
-            logger.fine("Error while setting request method " + e.getMessage());
+            log.debug("Error while setting request method " + e.getMessage());
             throw new CallHomeException("Error while setting request method", e);
         }
         return response.toString();
@@ -345,38 +365,53 @@ class CallHome {
                 HttpsURLConnection connection = createHttpsURLConnection(url);
                 switch (connection.getResponseCode()) {
                     case HttpURLConnection.HTTP_OK:
-                        logger.fine(url + " OK");
+                        log.debug(url + " OK");
                         return getResponse(connection);
                     case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
-                        logger.fine(url + " Gateway timeout");
+                        log.debug(url + " Gateway timeout");
                         break;
                     case HttpURLConnection.HTTP_UNAVAILABLE:
-                        logger.fine(url + " Unavailable");
+                        log.debug(url + " Unavailable");
                         break;
                     default:
-                        logger.fine(url + " Unknown response code");
+                        log.debug(url + " Unknown response code");
                         break;
                 }
             } catch (IOException e) {
-                logger.fine("Error while connecting to update server " + e.getMessage());
+                log.debug("Error while connecting to update server " + e.getMessage());
             }
 
             try {
                 Thread.sleep(RETRY_DELAY);
             } catch (InterruptedException e) {
-                logger.fine("Error while trying to apply the retry delay");
+                log.debug("Error while trying to apply the retry delay");
             }
         }
         throw new CallHomeException("Enable to retrieve updates information from server");
     }
 
-    /**
-     * This method logs the message.
-     *
-     * @param msg Message to be logged
-     */
-    private void printUpdateInfo(String msg) {
+    @Override
+    public void completingServerStartup() {
 
-        logger.info(msg);
+    }
+
+    @Override
+    public void completedServerStartup() {
+        if (callHomeResponse != null) {
+            try {
+                String response = callHomeResponse.get(CALL_HOME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                if (!response.isEmpty()) {
+                    PrintUtils.printMessage(response, LINE_LENGTH);
+                }
+            } catch (InterruptedException e) {
+                log.debug("CallHome is interrupted", e);
+            } catch (ExecutionException e) {
+                log.debug("CallHome execution failure", e);
+            } catch (TimeoutException e) {
+                log.debug("CallHome did not complete in expected time", e);
+            }
+        } else {
+            log.debug("CallHome response is not available");
+        }
     }
 }
