@@ -75,7 +75,7 @@ class CallHome implements Callable<String>, ServerStartupObserver {
     private String carbonProductHome;
 
     /**
-     * This method registers the CallHome object (this) to an ${{@link ExecutorService}}.
+     * This method registers the CallHome object (this) to an {@link ExecutorService}.
      */
     void execute() {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -83,7 +83,7 @@ class CallHome implements Callable<String>, ServerStartupObserver {
     }
 
     /**
-     * This method is executed by the ${{@link ExecutorService}} and will do series of steps
+     * This method is executed by the ${@link ExecutorService} and will do series of steps
      * to retrieve the update data.
      *
      * @return update response message
@@ -106,8 +106,7 @@ class CallHome implements Callable<String>, ServerStartupObserver {
             extractedInfo.setOperatingSystem(operatingSystem);
             extractedInfo.setUpdateLevel(updateLevel);
 
-            String updateInfo = retrieveUpdateInfoFromServer(extractedInfo);
-            return updateInfo;
+            return retrieveUpdateInfoFromServer(extractedInfo);
         } catch (CallHomeException e) {
             log.warn("Failed to get the number of updates available.");
             log.debug(e.toString());
