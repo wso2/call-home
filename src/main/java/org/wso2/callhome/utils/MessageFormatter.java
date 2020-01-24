@@ -18,6 +18,7 @@
 package org.wso2.callhome.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,9 +29,6 @@ import java.util.regex.Pattern;
  * @since 1.0.2
  */
 public class MessageFormatter {
-    private static final String LINE_START = "\n## ";
-    private static final String LINE_END = " ##";
-    private static final int LEN_LINE_START_AND_END = 6;
 
     /**
      * The printMessage prints the given message in multiple lines of the given line length.
@@ -39,27 +37,49 @@ public class MessageFormatter {
      * @param lineLength length of a line
      */
     public static String formatMessage(String message, int lineLength) {
-        int lineContentLength = lineLength - LEN_LINE_START_AND_END;
-
-        List<String> lines = splitToLines(message, lineContentLength);
 
         StringBuilder stringBuilder = new StringBuilder();
-        String logSeparator = "\n" + String.format("%" + (lineLength) + "s", "").replace(" ", "#");
+        List<String> lines;
+
+        if (message.length() > lineLength) {
+            lines = splitToLines(message, lineLength);
+            lineLength = trimAndGetMaxLength(lines);
+        } else {
+            lines = new ArrayList<>(Collections.singletonList(message));
+            lineLength = message.length();
+        }
+
+        String logSeparator = "\n" + String.format("%" + (lineLength) + "s", "").replace(" ", ".");
         stringBuilder.append(logSeparator);
 
         for (String line : lines) {
-            stringBuilder.append(LINE_START);
+            stringBuilder.append("\n");
             stringBuilder.append(line);
-            if (line.length() == lineLength) {
-                stringBuilder.append(LINE_END);
-            } else {
-                stringBuilder.append(String.format("%" + (lineContentLength - line.length()) + "s", ""));
-                stringBuilder.append(LINE_END);
-            }
         }
 
         stringBuilder.append(logSeparator);
         return stringBuilder.toString();
+    }
+
+    /**
+     * This method trims the lines in a String List and returns the maximum line length.
+     *
+     * @param lines String List to be trimmed and get the maximum line length
+     * @return Maximum line length
+     */
+    private static int trimAndGetMaxLength(List<String> lines) {
+
+        int maxLen = 0;
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            line = line.trim();
+            int len = line.length();
+            if (maxLen < len) {
+                maxLen = len;
+            }
+            lines.set(i, line);
+        }
+        return maxLen;
     }
 
     /**
@@ -70,6 +90,7 @@ public class MessageFormatter {
      * @return a list of lines split into the given length
      */
     private static List<String> splitToLines(String content, int lineLength) {
+
         List<String> lines = new ArrayList<>();
         Matcher matcher = Pattern.compile("(?s)(.{1," + (lineLength - 1) + "}(\\s|$)|\\S{" + lineLength + "}|\\S+$)")
                 .matcher(content);
