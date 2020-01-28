@@ -71,9 +71,9 @@
                             !org.wso2.callhome.*
                         </Export-Package>
                         <Import-Package>
-                            org.osgi.framework; version="[1.7,1.8)",
-                            org.wso2.carbon.core; version="[4.4.0,4.5.0)",
-                            org.wso2.carbon.utils; version="[4.4.0,4.5.0)",
+                            org.osgi.framework; version="[1.9,2.0)",
+                            org.wso2.carbon.core; version="[4.5.0,4.6.0)",
+                            org.wso2.carbon.utils; version="[4.5.0,4.6.0)",
                             org.apache.commons.logging,
                         </Import-Package>
                         <Embed-Dependency>
