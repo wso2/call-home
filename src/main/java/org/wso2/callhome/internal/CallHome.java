@@ -78,6 +78,7 @@ class CallHome implements Callable<String>, ServerStartupObserver {
      * This method registers the CallHome object (this) to an {@link ExecutorService}.
      */
     void execute() {
+
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         callHomeResponse = executorService.submit(this);
     }
@@ -90,6 +91,7 @@ class CallHome implements Callable<String>, ServerStartupObserver {
      */
     @Override
     public String call() {
+
         try {
             String productNameAndVersion = getProductNameAndVersion();
             long updateLevel = getUpdateLevel();
@@ -396,22 +398,29 @@ class CallHome implements Callable<String>, ServerStartupObserver {
 
     @Override
     public void completedServerStartup() {
-        if (callHomeResponse != null) {
-            try {
-                String response = callHomeResponse.get(CALL_HOME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                if (!response.isEmpty()) {
-                    String formattedMessage = MessageFormatter.formatMessage(response, LINE_LENGTH);
-                    log.info(formattedMessage);
+
+        Thread callHomeThread = new Thread(() -> {
+            log.debug("Activating CallHome component");
+            if (callHomeResponse != null) {
+                try {
+                    String response = callHomeResponse.get(CALL_HOME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    if (!response.isEmpty()) {
+                        String formattedMessage = MessageFormatter.formatMessage(response, LINE_LENGTH);
+                        log.info(formattedMessage);
+                    }
+                } catch (InterruptedException e) {
+                    log.debug("CallHome is interrupted", e);
+                } catch (ExecutionException e) {
+                    log.debug("CallHome execution failure", e);
+                } catch (TimeoutException e) {
+                    log.debug("CallHome did not complete in expected time", e);
                 }
-            } catch (InterruptedException e) {
-                log.debug("CallHome is interrupted", e);
-            } catch (ExecutionException e) {
-                log.debug("CallHome execution failure", e);
-            } catch (TimeoutException e) {
-                log.debug("CallHome did not complete in expected time", e);
+            } else {
+                log.debug("CallHome response is not available");
             }
-        } else {
-            log.debug("CallHome response is not available");
-        }
+        });
+        callHomeThread.setDaemon(true);
+        callHomeThread.setName("callHomeThread");
+        callHomeThread.start();
     }
 }
