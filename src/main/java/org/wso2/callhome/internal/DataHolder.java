@@ -17,32 +17,34 @@
  */
 package org.wso2.callhome.internal;
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.Future;
 
 /**
- * The CallHomeActivator class executes {@link CallHome}.
+ * CallHome DataHolder
  *
  * @since 1.0.2
  */
-public class CallHomeActivator implements BundleActivator {
+class DataHolder {
 
-    private static final Logger logger = LoggerFactory.getLogger(CallHomeActivator.class);
+    private static DataHolder instance = new DataHolder();
+    private Future<String> response;
 
-    @Override
-    public void start(BundleContext bundleContext) {
+    private DataHolder() {
 
-        logger.debug("Activating CallHome agent");
-
-        CallHome callHome = new CallHome();
-        callHome.execute();
     }
 
-    @Override
-    public void stop(BundleContext bundleContext) {
+    static DataHolder getInstance() {
 
-        logger.debug("Deactivating CallHome agent");
+        return instance;
+    }
+
+    Future<String> getResponse() {
+
+        return response;
+    }
+
+    void setResponse(Future<String> response) {
+
+        this.response = response;
     }
 }
