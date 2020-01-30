@@ -17,13 +17,10 @@
  */
 package org.wso2.callhome.internal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.callhome.exception.CallHomeException;
 import org.wso2.callhome.utils.ExtractedInfo;
-import org.wso2.callhome.utils.MessageFormatter;
-import org.wso2.carbon.core.ServerStartupObserver;
-import org.wso2.carbon.utils.CarbonUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedReader;
@@ -46,12 +43,9 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.net.ssl.HttpsURLConnection;
 
 import static java.lang.System.getProperty;
@@ -61,25 +55,24 @@ import static java.lang.System.getProperty;
  *
  * @since 1.0.0
  */
-class CallHome implements Callable<String>, ServerStartupObserver {
+public class CallHome implements Callable<String> {
 
-    private static final Log log = LogFactory.getLog(CallHome.class);
+    private static final Logger log = LoggerFactory.getLogger(CallHome.class);
     private static final String OS_NAME = "os.name";
     private static final String CALL_HOME_ENDPOINT = "https://api.updates.wso2.com/call-home/v1.0.0/check-updates";
     private static final String ACCESS_TOKEN = "45ffddfa-281c-36df-9fd0-d806c3f607ca";
     private static final int RETRY_DELAY = 10000;
     private static final int HTTP_CONNECTION_TIMEOUT = 10000;
-    private static final int CALL_HOME_TIMEOUT_SECONDS = 180;
-    private static final int LINE_LENGTH = 80;
-    private Future<String> callHomeResponse;
     private String carbonProductHome;
 
     /**
      * This method registers the CallHome object (this) to an {@link ExecutorService}.
      */
     void execute() {
+
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        callHomeResponse = executorService.submit(this);
+        Future<String> callHomeResponse = executorService.submit(this);
+        DataHolder.getInstance().setResponse(callHomeResponse);
     }
 
     /**
@@ -90,6 +83,7 @@ class CallHome implements Callable<String>, ServerStartupObserver {
      */
     @Override
     public String call() {
+
         try {
             String productNameAndVersion = getProductNameAndVersion();
             long updateLevel = getUpdateLevel();
@@ -122,7 +116,7 @@ class CallHome implements Callable<String>, ServerStartupObserver {
     private String getProductHome() {
 
         if (carbonProductHome == null) {
-            carbonProductHome = CarbonUtils.getCarbonHome();
+            carbonProductHome = System.getProperty("carbon.home");
         }
         return carbonProductHome;
     }
@@ -387,31 +381,5 @@ class CallHome implements Callable<String>, ServerStartupObserver {
             }
         }
         throw new CallHomeException("Unable to retrieve updates information from server");
-    }
-
-    @Override
-    public void completingServerStartup() {
-
-    }
-
-    @Override
-    public void completedServerStartup() {
-        if (callHomeResponse != null) {
-            try {
-                String response = callHomeResponse.get(CALL_HOME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                if (!response.isEmpty()) {
-                    String formattedMessage = MessageFormatter.formatMessage(response, LINE_LENGTH);
-                    log.info(formattedMessage);
-                }
-            } catch (InterruptedException e) {
-                log.debug("CallHome is interrupted", e);
-            } catch (ExecutionException e) {
-                log.debug("CallHome execution failure", e);
-            } catch (TimeoutException e) {
-                log.debug("CallHome did not complete in expected time", e);
-            }
-        } else {
-            log.debug("CallHome response is not available");
-        }
     }
 }

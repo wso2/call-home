@@ -39,19 +39,38 @@
         <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
-            <version>3.14.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.core</artifactId>
-            <version>4.5.2</version>
+            <version>${org.eclipse.platform.version}</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.23</version>
+            <version>${org.yaml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+            <version>${org.wso2.eclipse.osgi.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi.services</artifactId>
+            <version>${org.wso2.eclipse.osgi.services.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.core</artifactId>
+            <version>${org.wso2.carbon.version}</version>
         </dependency>
     </dependencies>
+    <properties>
+        <org.eclipse.platform.version>3.14.0</org.eclipse.platform.version>
+        <org.yaml.version>1.23</org.yaml.version>
+        <org.wso2.eclipse.osgi.version>3.11.0.v20160603-1336</org.wso2.eclipse.osgi.version>
+        <org.wso2.eclipse.osgi.services.version>3.5.100.v20160504-1419</org.wso2.eclipse.osgi.services.version>
+        <org.wso2.carbon.version>5.2.0</org.wso2.carbon.version>
+    </properties>
     <build>
         <plugins>
             <plugin>
@@ -71,9 +90,9 @@
                             !org.wso2.callhome.*
                         </Export-Package>
                         <Import-Package>
-                            org.osgi.framework; version="[1.9,2.0)",
-                            org.wso2.carbon.core; version="[4.5.0,4.6.0)",
-                            org.wso2.carbon.utils; version="[4.5.0,4.6.0)",
+                            org.slf4j.*,
+                            org.osgi.framework; version="[1.8.0, 2.0.0)",
+                            org.wso2.carbon.kernel; version="[5.2.0, 6.0.0)",
                             org.apache.commons.logging,
                         </Import-Package>
                         <Embed-Dependency>
