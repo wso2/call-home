@@ -123,6 +123,11 @@ class CallHome implements Callable<String>, ServerStartupObserver {
 
         if (carbonProductHome == null) {
             carbonProductHome = CarbonUtils.getCarbonHome();
+            Path updatesDirPath = Paths.get(carbonProductHome, "updates");
+            if (!Files.isDirectory(updatesDirPath)) {
+                File file = new File(carbonProductHome);
+                carbonProductHome = String.valueOf(file.getParentFile().getParentFile());
+            }
         }
         return carbonProductHome;
     }
