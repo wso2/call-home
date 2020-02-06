@@ -117,6 +117,11 @@ public class CallHome implements Callable<String> {
 
         if (carbonProductHome == null) {
             carbonProductHome = System.getProperty("carbon.home");
+            Path updatesDirPath = Paths.get(carbonProductHome, "updates");
+            if (!Files.isDirectory(updatesDirPath)) {
+                File file = new File(carbonProductHome);
+                carbonProductHome = String.valueOf(file.getParentFile().getParentFile());
+            }
         }
         return carbonProductHome;
     }
