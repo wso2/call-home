@@ -22,6 +22,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.callhome.exception.CallHomeException;
 import org.wso2.callhome.utils.ExtractedInfo;
 import org.wso2.callhome.utils.MessageFormatter;
+//import org.wso2.carbon.base.ServerConfiguration;
+//import org.wso2.carbon.base.ServerConfiguration;
+//import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.ServerStartupObserver;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.yaml.snakeyaml.Yaml;
@@ -38,11 +41,24 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+//import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+//import java.security.KeyStore;
+//import java.security.KeyStoreException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+//import java.security.SecureRandom;
+//import java.security.cert.CertificateException;
+//import java.security.cert.X509Certificate;
+//import java.security.SecureRandom;
+//import java.security.cert.X509Certificate;
+import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -53,6 +69,18 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.net.ssl.HttpsURLConnection;
+//import javax.net.ssl.KeyManagerFactory;
+//import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+//import javax.net.ssl.SSLSocketFactory;
+//import javax.net.ssl.SSLSocketFactory;
+//import javax.net.ssl.TrustManager;
+//import javax.net.ssl.TrustManagerFactory;
+//import javax.net.ssl.TrustManager;
+//import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
+//import javax.net.ssl.X509TrustManager;
+//import javax.net.ssl.X509TrustManager;
 
 import static java.lang.System.getProperty;
 
@@ -93,6 +121,9 @@ class CallHome implements Callable<String>, ServerStartupObserver {
     public String call() {
 
         try {
+//            String trustStore = "/home/ching/.wum3/products/wso2am/2.6.0/full/wso2am-2.6.0/" +
+//                    "repository/resources/security/client-truststore.jks";
+//            System.setProperty("javax.net.ssl.trustStore", trustStore);
             String productNameAndVersion = getProductNameAndVersion();
             long updateLevel = getUpdateLevel();
             String channel = getChannelFromConfigYaml();
@@ -315,15 +346,46 @@ class CallHome implements Callable<String>, ServerStartupObserver {
      * @return An HTTP connection to the given url
      * @throws IOException If an error occurs while creating an HTTP connection
      */
-    private HttpsURLConnection createHttpsURLConnection(URL url) throws IOException {
+    private HttpsURLConnection createHttpsURLConnection(URL url) throws IOException, CallHomeException {
 
         HttpsURLConnection connection;
-        connection = (HttpsURLConnection) url.openConnection();
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(HTTP_CONNECTION_TIMEOUT);
+
+//        log.info("==============================");
+//        ServerConfigurationService serverConfigurationService =
+//                CallHomeComponent.getServerConfigurationService();
+//        String file =
+//                new File(serverConfigurationService.getFirstProperty("Security.KeyStore.Location")).getAbsolutePath();
+//        log.info(file);
+        try {
+
+            FileInputStream trustStoreKeys = new FileInputStream("/Users/jayanga/Work/Temp/wso2am-2.6.0/" +
+                    "repository/resources/security/client-truststore.jks");
+//            FileInputStream trustStoreKeys = new FileInputStream("/home/ching/.wum3/products/wso2am/2.6.0/full/" +
+//                    "wso2am-2.6.0/repository/resources/security/client-truststore.jks");
+            String keyStorePassword = "wso2carbon";
+            KeyStore truststore = KeyStore.getInstance(KeyStore.getDefaultType());
+            char[] truststorePassword = keyStorePassword.toCharArray();
+            truststore.load(trustStoreKeys, truststorePassword);
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.
+                    getDefaultAlgorithm());
+
+            trustManagerFactory.init(truststore);
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, trustManagerFactory.getTrustManagers(),
+                    new java.security.SecureRandom());
+            SSLContext.setDefault(sc);
+
+            connection = (HttpsURLConnection) url.openConnection();
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(HTTP_CONNECTION_TIMEOUT);
+
+        } catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | KeyStoreException e) {
+            log.debug("Error while setting request method " + e.getMessage());
+            throw new CallHomeException("Error while setting request method", e);
+        }
         return connection;
     }
 
