@@ -14,15 +14,16 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
-        <version>5</version>
+        <version>1</version>
     </parent>
 
-    <groupId>org.wso2.carbon.updateinfo</groupId>
-    <artifactId>call-home</artifactId>
+    <groupId>org.wso2.carbon.callhome</groupId>
+    <artifactId>callhome</artifactId>
     <name>Call Home Client</name>
     <version>1.0.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
@@ -35,25 +36,71 @@
         <tag>HEAD</tag>
     </scm>
 
+    <properties>
+        <org.apache.httpcomponents.httpclient>4.5.11</org.apache.httpcomponents.httpclient>
+        <org.apache.httpcomponents.httpcore>4.4.13</org.apache.httpcomponents.httpcore>
+        <org.eclipse.platform>3.14.0</org.eclipse.platform>
+        <org.eclipse.osgi.services>3.3.100.v20130513-1956</org.eclipse.osgi.services>
+        <org.wso2.carbon.core>4.5.2</org.wso2.carbon.core>
+        <org.yaml.snakeyaml>1.23</org.yaml.snakeyaml>
+    </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${org.apache.httpcomponents.httpclient}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>${org.apache.httpcomponents.httpcore}</version>
+        </dependency>
         <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
-            <version>3.14.0</version>
+            <version>${org.eclipse.platform}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi.services</artifactId>
+            <version>${org.eclipse.osgi.services}</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.core</artifactId>
-            <version>4.5.2</version>
+            <version>${org.wso2.carbon.core}</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.23</version>
+            <version>${org.yaml.snakeyaml}</version>
         </dependency>
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+                <version>1.7.2</version>
+                <executions>
+                    <execution>
+                        <id>generate-scr-scrdescriptor</id>
+                        <goals>
+                            <goal>scr</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -71,13 +118,15 @@
                             !org.wso2.callhome.*
                         </Export-Package>
                         <Import-Package>
+                            org.wso2.carbon.base.api; version="[1.0.0,2.0.0)",
                             org.osgi.framework; version="[1.7,1.8)",
                             org.wso2.carbon.core; version="[4.4.0,4.5.0)",
                             org.wso2.carbon.utils; version="[4.4.0,4.5.0)",
                             org.apache.commons.logging,
+                            org.osgi.service.component; version="[1.2.0,2.0.0)",
                         </Import-Package>
                         <Embed-Dependency>
-                            snakeyaml;scope=compile|runtime;inline=false
+                            snakeyaml,httpcore,httpclient;scope=compile|runtime;inline=false
                         </Embed-Dependency>
                     </instructions>
                 </configuration>
