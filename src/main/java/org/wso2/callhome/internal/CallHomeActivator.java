@@ -24,7 +24,7 @@ import org.osgi.framework.BundleContext;
 import org.wso2.carbon.core.ServerStartupObserver;
 
 /**
- * The CallHomeActivator class executes {@link CallHome} and registers it as a {@link ServerStartupObserver}.
+ * The CallHomeActivator class executes {@link CallHomeObserver} and registers it as a {@link ServerStartupObserver}.
  *
  * @since 1.0.2
  */
@@ -36,9 +36,8 @@ public class CallHomeActivator implements BundleActivator {
 
         log.debug("Activating CallHome agent");
 
-        CallHome callHome = new CallHome();
-        callHome.execute();
-        bundleContext.registerService(ServerStartupObserver.class, callHome, null);
+        CallHomeObserver callHomeObserver = new CallHomeObserver();
+        bundleContext.registerService(ServerStartupObserver.class, callHomeObserver, null);
     }
 
     @Override
