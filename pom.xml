@@ -37,6 +37,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.13</version>
+        </dependency>
+        <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
             <version>${org.eclipse.platform.version}</version>
@@ -75,6 +85,19 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+                <version>1.7.2</version>
+                <executions>
+                    <execution>
+                        <id>generate-scr-scrdescriptor</id>
+                        <goals>
+                            <goal>scr</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <version>3.2.0</version>
                 <extensions>true</extensions>
@@ -97,7 +120,7 @@
                             org.apache.commons.logging,
                         </Import-Package>
                         <Embed-Dependency>
-                            snakeyaml;scope=compile|runtime;inline=false
+                            snakeyaml,httpcore,httpclient;scope=compile|runtime;inline=false
                         </Embed-Dependency>
                     </instructions>
                 </configuration>
