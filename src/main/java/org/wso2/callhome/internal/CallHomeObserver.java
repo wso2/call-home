@@ -29,6 +29,8 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * This method implements the ServerStartupObserver.
+ *
+ * @since 1.0.2
  */
 public class CallHomeObserver implements ServerStartupObserver {
 
