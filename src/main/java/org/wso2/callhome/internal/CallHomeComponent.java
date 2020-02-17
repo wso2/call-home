@@ -57,7 +57,6 @@ public class CallHomeComponent {
     protected void deactivate() {
 
         log.debug("Deactivating CallHomeComponent");
-
     }
 
     public ServerConfigurationService getServerConfigurationService() {
