@@ -63,6 +63,8 @@ public class CallHome implements Callable<String> {
     private static final String ACCESS_TOKEN = "45ffddfa-281c-36df-9fd0-d806c3f607ca";
     private static final int RETRY_DELAY = 10000;
     private static final int HTTP_CONNECTION_TIMEOUT = 10000;
+    private static final String TRUSTSTORE_LOCATION = "Security.TrustStore.Location";
+    private static final String TRUSTSTORE_PASSWORD = "Security.TrustStore.Password";
     private String carbonProductHome;
 
     /**
