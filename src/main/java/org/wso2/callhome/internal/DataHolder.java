@@ -17,17 +17,27 @@
  */
 package org.wso2.callhome.internal;
 
-import java.util.concurrent.Future;
+import org.wso2.carbon.config.provider.ConfigProvider;
 
 /**
- * CallHome DataHolder
+ * CallHome DataHolder.
  *
  * @since 1.0.2
  */
 class DataHolder {
 
     private static DataHolder instance = new DataHolder();
-    private Future<String> response;
+    private ConfigProvider configProvider;
+
+    ConfigProvider getConfigProvider() {
+
+        return configProvider;
+    }
+
+    void setConfigProvider(ConfigProvider configProvider) {
+
+        this.configProvider = configProvider;
+    }
 
     private DataHolder() {
 
@@ -36,15 +46,5 @@ class DataHolder {
     static DataHolder getInstance() {
 
         return instance;
-    }
-
-    Future<String> getResponse() {
-
-        return response;
-    }
-
-    void setResponse(Future<String> response) {
-
-        this.response = response;
     }
 }

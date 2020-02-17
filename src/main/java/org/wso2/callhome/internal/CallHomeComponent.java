@@ -25,14 +25,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.callhome.utils.MessageFormatter;
-import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.config.provider.ConfigProvider;
 import org.wso2.carbon.kernel.CarbonServerInfo;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * This service component creates a CallHome service.
@@ -46,37 +40,13 @@ import java.util.concurrent.TimeoutException;
 public class CallHomeComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(CallHome.class);
-    private static final int CALL_HOME_TIMEOUT_SECONDS = 180;
-    private static final int LINE_LENGTH = 80;
-    private static ServerConfigurationService serverConfigurationService;
 
     @Activate
     public void activate() {
 
-        Thread callHomeComponentThread = new Thread(() -> {
-            logger.debug("Activating CallHome component");
-            Future<String> callHomeResponse = DataHolder.getInstance().getResponse();
-            if (callHomeResponse != null) {
-                try {
-                    String response = callHomeResponse.get(CALL_HOME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                    if (!response.isEmpty()) {
-                        String formattedMessage = MessageFormatter.formatMessage(response, LINE_LENGTH);
-                        logger.info(formattedMessage);
-                    }
-                } catch (InterruptedException e) {
-                    logger.debug("CallHome is interrupted", e);
-                } catch (ExecutionException e) {
-                    logger.debug("CallHome execution failure", e);
-                } catch (TimeoutException e) {
-                    logger.debug("CallHome did not complete in expected time", e);
-                }
-            } else {
-                logger.debug("CallHome response is not available");
-            }
-        });
-        callHomeComponentThread.setDaemon(true);
-        callHomeComponentThread.setName("callHomeComponentThread");
-        callHomeComponentThread.start();
+        CallHome callHome = new CallHome();
+        callHome.execute();
+
     }
 
     @Deactivate
@@ -94,34 +64,31 @@ public class CallHomeComponent {
     )
     protected void registerCallHomeService(CarbonServerInfo carbonServerInfo) {
 
-        logger.debug("CallHome service registered");
+        logger.debug("CarbonServerInfo service registered");
     }
 
     protected void unregisterCallHomeService(CarbonServerInfo carbonServerInfo) {
 
-        logger.debug("CallHome service unregistered");
-    }
-
-    public static ServerConfigurationService getServerConfigurationService() {
-
-        return CallHomeComponent.serverConfigurationService;
+        logger.debug("CarbonServerInfo service unregistered");
     }
 
     @Reference(
-            name = "org.wso2.callhome.internal.callhomecomponent",
-            service = ServerConfigurationService.class,
+            name = "org.wso2.carbon.configprovider",
+            service = ConfigProvider.class,
             cardinality = ReferenceCardinality.AT_LEAST_ONE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unregisterCallHomeService"
+            unbind = "unregisterConfigProviderService"
     )
-    protected void registerServerConfigurationService(ServerConfigurationService serverConfigurationService) {
-        logger.info("--------------------------hello");
+    protected void registerConfigProviderService(ConfigProvider configProvider) {
 
-        CallHomeComponent.serverConfigurationService = serverConfigurationService;
+        logger.debug("ConfigProvider service registered");
+        DataHolder.getInstance().setConfigProvider(configProvider);
+
     }
 
-    protected void unregisterServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+    protected void unregisterConfigProviderService(ConfigProvider configProvider) {
 
-        CallHomeComponent.serverConfigurationService = null;
+        logger.debug("ConfigProvider service unregistered");
+        DataHolder.getInstance().setConfigProvider(null);
     }
 }
