@@ -26,6 +26,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.callhome.utils.MessageFormatter;
+import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.kernel.CarbonServerInfo;
 
 import java.util.concurrent.ExecutionException;
@@ -47,6 +48,7 @@ public class CallHomeComponent {
     private static final Logger logger = LoggerFactory.getLogger(CallHome.class);
     private static final int CALL_HOME_TIMEOUT_SECONDS = 180;
     private static final int LINE_LENGTH = 80;
+    private static ServerConfigurationService serverConfigurationService;
 
     @Activate
     public void activate() {
@@ -98,5 +100,28 @@ public class CallHomeComponent {
     protected void unregisterCallHomeService(CarbonServerInfo carbonServerInfo) {
 
         logger.debug("CallHome service unregistered");
+    }
+
+    public static ServerConfigurationService getServerConfigurationService() {
+
+        return CallHomeComponent.serverConfigurationService;
+    }
+
+    @Reference(
+            name = "org.wso2.callhome.internal.callhomecomponent",
+            service = ServerConfigurationService.class,
+            cardinality = ReferenceCardinality.AT_LEAST_ONE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unregisterCallHomeService"
+    )
+    protected void registerServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+        logger.info("--------------------------hello");
+
+        CallHomeComponent.serverConfigurationService = serverConfigurationService;
+    }
+
+    protected void unregisterServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+
+        CallHomeComponent.serverConfigurationService = null;
     }
 }
