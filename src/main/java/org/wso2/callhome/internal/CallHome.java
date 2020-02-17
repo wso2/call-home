@@ -17,13 +17,27 @@
  */
 package org.wso2.callhome.internal;
 
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.callhome.exception.CallHomeException;
+import org.wso2.callhome.internal.config.CallHomeConfigProvider;
 import org.wso2.callhome.utils.ExtractedInfo;
+import org.wso2.callhome.utils.MessageFormatter;
+import org.wso2.carbon.config.ConfigurationException;
+import org.wso2.carbon.config.provider.ConfigProvider;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -40,13 +54,20 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import javax.net.ssl.HttpsURLConnection;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.net.ssl.SSLContext;
 
 import static java.lang.System.getProperty;
 
@@ -62,9 +83,9 @@ public class CallHome implements Callable<String> {
     private static final String CALL_HOME_ENDPOINT = "https://api.updates.wso2.com/call-home/v1.0.0/check-updates";
     private static final String ACCESS_TOKEN = "45ffddfa-281c-36df-9fd0-d806c3f607ca";
     private static final int RETRY_DELAY = 10000;
-    private static final int HTTP_CONNECTION_TIMEOUT = 10000;
-    private static final String TRUSTSTORE_LOCATION = "Security.TrustStore.Location";
-    private static final String TRUSTSTORE_PASSWORD = "Security.TrustStore.Password";
+    private static final int CALL_HOME_TIMEOUT_SECONDS = 180;
+    private static final int LINE_LENGTH = 80;
+
     private String carbonProductHome;
 
     /**
@@ -74,7 +95,7 @@ public class CallHome implements Callable<String> {
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<String> callHomeResponse = executorService.submit(this);
-        DataHolder.getInstance().setResponse(callHomeResponse);
+        formatAndPrintResponse(callHomeResponse);
     }
 
     /**
@@ -302,52 +323,54 @@ public class CallHome implements Callable<String> {
     }
 
     /**
-     * This method creates an HTTPS connection to a given url.
+     * This method creates a ClosableHTTPClient with the WSO2 TrustStore as a trust manager.
      *
-     * @param url URL of the call home server
-     * @return An HTTP connection to the given url
-     * @throws IOException If an error occurs while creating an HTTP connection
+     * @return Returns a ClosableHTTPClient
+     * @throws CallHomeException If an error occurs while create a CloseableHttpClient
      */
-    private HttpsURLConnection createHttpsURLConnection(URL url) throws IOException {
+    private CloseableHttpClient getCloseableHttpClient() throws CallHomeException {
 
-        HttpsURLConnection connection;
-        connection = (HttpsURLConnection) url.openConnection();
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(HTTP_CONNECTION_TIMEOUT);
-        return connection;
+        ConfigProvider configProvider = DataHolder.getInstance().getConfigProvider();
+        CallHomeConfigProvider callHomeConfigProvider;
+        SSLContextBuilder sslContextBuilder = SSLContexts.custom();
+
+        try {
+            callHomeConfigProvider = configProvider.getConfigurationObject(CallHomeConfigProvider.class);
+            File trustStoreFile = new File(callHomeConfigProvider.getTrustStorePath());
+            String trustStorePassword = callHomeConfigProvider.getTrustStorePassword();
+
+            sslContextBuilder = sslContextBuilder.loadTrustMaterial(trustStoreFile, trustStorePassword.toCharArray());
+            SSLContext sslContext = sslContextBuilder.build();
+            SSLConnectionSocketFactory sslConSocFactory = new SSLConnectionSocketFactory(sslContext,
+                    new NoopHostnameVerifier());
+
+            HttpClientBuilder httpClientBuilder = HttpClients.custom();
+            httpClientBuilder.setSSLSocketFactory(sslConSocFactory);
+
+            return httpClientBuilder.build();
+        } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException | IOException |
+                KeyManagementException | ConfigurationException e) {
+            log.debug("Error while creating CloseableHttpClient");
+            throw new CallHomeException("Error while creating CloseableHttpClient", e);
+        }
     }
 
     /**
-     * This method gets the response from the HTTPS connection.
+     * This method gets the response body from the CloseableHttpResponse.
      *
-     * @param httpsURLConnection HTTPS connection
-     * @return Response from the server
+     * @param response ClosableHttpResponse
      * @throws CallHomeException If an error occurs while getting the response
      */
-    private String getResponse(HttpsURLConnection httpsURLConnection) throws CallHomeException {
+    private String getClosableHttpResponseBody(CloseableHttpResponse response) throws CallHomeException {
 
-        StringBuilder response = new StringBuilder();
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
         try {
-            int responseCode = httpsURLConnection.getResponseCode();
-            if (responseCode == HttpsURLConnection.HTTP_OK) {
-                try (InputStreamReader inputStreamReader = new InputStreamReader(httpsURLConnection.getInputStream(),
-                        StandardCharsets.UTF_8);
-                     BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-
-                    String readLine;
-                    while ((readLine = bufferedReader.readLine()) != null) {
-                        response.append(readLine);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            log.debug("Error while setting request method " + e.getMessage());
-            throw new CallHomeException("Error while setting request method", e);
+            return responseHandler.handleResponse(response);
+        } catch (
+                IOException e) {
+            log.debug("Error while getting the response body from the CloseableHttpResponse");
+            throw new CallHomeException("Error while getting the response body from the CloseableHttpResponse", e);
         }
-        return response.toString();
     }
 
     /**
@@ -360,13 +383,20 @@ public class CallHome implements Callable<String> {
     private String retrieveUpdateInfoFromServer(ExtractedInfo extractedInfo) throws CallHomeException {
 
         URL url = constructCallHomeURL(extractedInfo);
+        HttpGet request = new HttpGet(String.valueOf(url));
+
+        request.addHeader("Authorization", "Bearer " + ACCESS_TOKEN);
+        request.addHeader("Accept", "application/json");
+        request.addHeader("Content-Type", "application/json");
+        CloseableHttpClient httpClient = getCloseableHttpClient();
+
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
-                HttpsURLConnection connection = createHttpsURLConnection(url);
-                switch (connection.getResponseCode()) {
+                CloseableHttpResponse response = httpClient.execute(request);
+                switch (response.getStatusLine().getStatusCode()) {
                     case HttpURLConnection.HTTP_OK:
                         log.debug(url + " OK");
-                        return getResponse(connection);
+                        return getClosableHttpResponseBody(response);
                     case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
                         log.debug(url + " Gateway timeout");
                         break;
@@ -388,5 +418,36 @@ public class CallHome implements Callable<String> {
             }
         }
         throw new CallHomeException("Unable to retrieve updates information from server");
+    }
+
+    /**
+     * This method formats the provided Future<String> and logs it.
+     *
+     * @param callHomeResponse Future CallHomeResponse
+     */
+    private void formatAndPrintResponse(Future<String> callHomeResponse) {
+
+        Thread callHomeComponentThread = new Thread(() -> {
+            if (callHomeResponse != null) {
+                try {
+                    String response = callHomeResponse.get(CALL_HOME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    if (!response.isEmpty()) {
+                        String formattedMessage = MessageFormatter.formatMessage(response, LINE_LENGTH);
+                        log.info(formattedMessage);
+                    }
+                } catch (InterruptedException e) {
+                    log.debug("CallHome is interrupted", e);
+                } catch (ExecutionException e) {
+                    log.debug("CallHome execution failure", e);
+                } catch (TimeoutException e) {
+                    log.debug("CallHome did not complete in expected time", e);
+                }
+            } else {
+                log.debug("CallHome response is not available");
+            }
+        });
+        callHomeComponentThread.setDaemon(true);
+        callHomeComponentThread.setName("callHomeComponentThread");
+        callHomeComponentThread.start();
     }
 }

@@ -34,15 +34,13 @@ public class CallHomeActivator implements BundleActivator {
     @Override
     public void start(BundleContext bundleContext) {
 
-        logger.debug("Activating CallHome agent");
+        logger.debug("Activating CallHome bundle");
 
-        CallHome callHome = new CallHome();
-        callHome.execute();
     }
 
     @Override
     public void stop(BundleContext bundleContext) {
 
-        logger.debug("Deactivating CallHome agent");
+        logger.debug("Deactivating CallHome bundle");
     }
 }
