@@ -22,10 +22,10 @@
         <version>5</version>
     </parent>
 
-    <groupId>org.wso2.carbon.updateinfo</groupId>
-    <artifactId>call-home</artifactId>
+    <groupId>org.wso2.carbon.callhome</groupId>
+    <artifactId>callhome</artifactId>
     <name>Call Home Client</name>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>5.x.x_1.0.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <modelVersion>4.0.0</modelVersion>
 
