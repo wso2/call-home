@@ -46,7 +46,6 @@ public class CallHomeComponent {
 
         CallHome callHome = new CallHome();
         callHome.execute();
-
     }
 
     @Deactivate

@@ -17,6 +17,7 @@
  */
 package org.wso2.callhome.internal.config;
 
+import org.wso2.carbon.config.ConfigurationUtils;
 import org.wso2.carbon.config.annotation.Configuration;
 import org.wso2.carbon.config.annotation.Element;
 
@@ -29,7 +30,8 @@ import org.wso2.carbon.config.annotation.Element;
 public class CallHomeConfigProvider {
 
     @Element(description = "TrustStore path", required = true)
-    private String trustStorePath = "${sys:carbon.home}/resources/security/client-truststore.jks";
+    private String trustStorePath =
+            ConfigurationUtils.substituteVariables("${carbon.home}/resources/security/client-truststore.jks");
 
     @Element(description = "TrustStore password", required = true)
     private String trustStorePassword = "wso2carbon";

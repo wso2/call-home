@@ -109,7 +109,6 @@
                     <instructions>
                         <Bundle-Vendor>WSO2 Inc</Bundle-Vendor>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Activator>org.wso2.callhome.internal.CallHomeActivator</Bundle-Activator>
                         <Private-Package>
                             org.wso2.callhome.*
                         </Private-Package>
