@@ -1,3 +1,0 @@
-callhome.config:
-    trustStorePath: '${sys:carbon.home}/resources/security/client-truststore.jks'
-    trustStorePassword: 'wso2carbon'
