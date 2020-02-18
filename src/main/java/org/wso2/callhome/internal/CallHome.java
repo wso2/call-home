@@ -326,7 +326,8 @@ class CallHome implements Callable<String> {
      */
     private CloseableHttpClient getCloseableHttpClient() throws CallHomeException {
 
-        ServerConfigurationService serverConfigurationService = DataHolder.getInstance().getServerConfigurationService();
+        ServerConfigurationService serverConfigurationService =
+                DataHolder.getInstance().getServerConfigurationService();
         File trustStoreFile = new File(serverConfigurationService.getFirstProperty(TRUSTSTORE_LOCATION));
         String trustStorePassword = serverConfigurationService.getFirstProperty(TRUSTSTORE_PASSWORD);
         SSLContextBuilder sslContextBuilder = SSLContexts.custom();
@@ -379,34 +380,35 @@ class CallHome implements Callable<String> {
         request.addHeader("Authorization", "Bearer " + ACCESS_TOKEN);
         request.addHeader("Accept", "application/json");
         request.addHeader("Content-Type", "application/json");
-        CloseableHttpClient httpClient = getCloseableHttpClient();
 
-        for (int attempt = 0; attempt < 3; attempt++) {
-            try {
-                CloseableHttpResponse response = httpClient.execute(request);
-                switch (response.getStatusLine().getStatusCode()) {
-                    case HttpURLConnection.HTTP_OK:
-                        log.debug(url + " OK");
-                        return getClosableHttpResponseBody(response);
-                    case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
-                        log.debug(url + " Gateway timeout");
-                        break;
-                    case HttpURLConnection.HTTP_UNAVAILABLE:
-                        log.debug(url + " Unavailable");
-                        break;
-                    default:
-                        log.debug(url + " Unknown response code");
-                        break;
+        try (CloseableHttpClient httpClient = getCloseableHttpClient()) {
+            for (int attempt = 0; attempt < 3; attempt++) {
+                try (CloseableHttpResponse response = httpClient.execute(request)) {
+                    switch (response.getStatusLine().getStatusCode()) {
+                        case HttpURLConnection.HTTP_OK:
+                            log.debug(url + " OK");
+                            return getClosableHttpResponseBody(response);
+                        case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
+                            log.debug(url + " Gateway timeout");
+                            break;
+                        case HttpURLConnection.HTTP_UNAVAILABLE:
+                            log.debug(url + " Unavailable");
+                            break;
+                        default:
+                            log.debug(url + " Unknown response code");
+                            break;
+                    }
+                } catch (IOException e) {
+                    log.debug("Error while connecting to update server " + e.getMessage());
                 }
-            } catch (IOException e) {
-                log.debug("Error while connecting to update server " + e.getMessage());
+                try {
+                    Thread.sleep(RETRY_DELAY);
+                } catch (InterruptedException e) {
+                    log.debug("Error while trying to apply the retry delay");
+                }
             }
-
-            try {
-                Thread.sleep(RETRY_DELAY);
-            } catch (InterruptedException e) {
-                log.debug("Error while trying to apply the retry delay");
-            }
+        } catch (IOException e) {
+            log.debug("Error while creating a CloseableHttpClient");
         }
         throw new CallHomeException("Unable to retrieve updates information from server");
     }
