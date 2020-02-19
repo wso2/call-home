@@ -30,6 +30,7 @@ import org.wso2.carbon.base.api.ServerConfigurationService;
 
 /**
  * This service component creates a CallHomeComponent.
+ *
  * @since 1.0.2
  */
 @Component(
