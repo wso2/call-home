@@ -346,7 +346,6 @@ public class CallHome implements Callable<String> {
 
             HttpClientBuilder httpClientBuilder = HttpClients.custom();
             httpClientBuilder.setSSLSocketFactory(sslConSocFactory);
-
             return httpClientBuilder.build();
         } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException | IOException |
                 KeyManagementException | ConfigurationException e) {
@@ -384,7 +383,6 @@ public class CallHome implements Callable<String> {
 
         URL url = constructCallHomeURL(extractedInfo);
         HttpGet request = new HttpGet(String.valueOf(url));
-
         request.addHeader("Authorization", "Bearer " + ACCESS_TOKEN);
         request.addHeader("Accept", "application/json");
         request.addHeader("Content-Type", "application/json");
