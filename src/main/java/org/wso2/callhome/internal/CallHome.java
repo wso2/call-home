@@ -338,7 +338,6 @@ class CallHome implements Callable<String> {
                     new NoopHostnameVerifier());
             HttpClientBuilder httpClientBuilder = HttpClients.custom();
             httpClientBuilder.setSSLSocketFactory(sslConSocFactory);
-
             return httpClientBuilder.build();
         } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException | IOException |
                 KeyManagementException e) {
@@ -376,38 +375,38 @@ class CallHome implements Callable<String> {
 
         URL url = constructCallHomeURL(extractedInfo);
         HttpGet request = new HttpGet(String.valueOf(url));
-
         request.addHeader("Authorization", "Bearer " + ACCESS_TOKEN);
         request.addHeader("Accept", "application/json");
         request.addHeader("Content-Type", "application/json");
-        CloseableHttpClient httpClient = getCloseableHttpClient();
 
-        for (int attempt = 0; attempt < 3; attempt++) {
-            try {
-                CloseableHttpResponse response = httpClient.execute(request);
-                switch (response.getStatusLine().getStatusCode()) {
-                    case HttpURLConnection.HTTP_OK:
-                        log.debug(url + " OK");
-                        return getClosableHttpResponseBody(response);
-                    case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
-                        log.debug(url + " Gateway timeout");
-                        break;
-                    case HttpURLConnection.HTTP_UNAVAILABLE:
-                        log.debug(url + " Unavailable");
-                        break;
-                    default:
-                        log.debug(url + " Unknown response code");
-                        break;
+        try (CloseableHttpClient httpClient = getCloseableHttpClient()) {
+            for (int attempt = 0; attempt < 3; attempt++) {
+                try (CloseableHttpResponse response = httpClient.execute(request)) {
+                    switch (response.getStatusLine().getStatusCode()) {
+                        case HttpURLConnection.HTTP_OK:
+                            log.debug(url + " OK");
+                            return getClosableHttpResponseBody(response);
+                        case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
+                            log.debug(url + " Gateway timeout");
+                            break;
+                        case HttpURLConnection.HTTP_UNAVAILABLE:
+                            log.debug(url + " Unavailable");
+                            break;
+                        default:
+                            log.debug(url + " Unknown response code");
+                            break;
+                    }
+                } catch (IOException e) {
+                    log.debug("Error while connecting to update server " + e.getMessage());
                 }
-            } catch (IOException e) {
-                log.debug("Error while connecting to update server " + e.getMessage());
+                try {
+                    Thread.sleep(RETRY_DELAY);
+                } catch (InterruptedException e) {
+                    log.debug("Error while trying to apply the retry delay");
+                }
             }
-
-            try {
-                Thread.sleep(RETRY_DELAY);
-            } catch (InterruptedException e) {
-                log.debug("Error while trying to apply the retry delay");
-            }
+        } catch (IOException e) {
+            log.debug("Error while creating a CloseableHttpClient");
         }
         throw new CallHomeException("Unable to retrieve updates information from server");
     }
