@@ -82,7 +82,6 @@ public class CallHomeComponent {
 
         logger.debug("ConfigProvider service registered");
         DataHolder.getInstance().setConfigProvider(configProvider);
-
     }
 
     protected void unregisterConfigProviderService(ConfigProvider configProvider) {

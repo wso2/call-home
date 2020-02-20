@@ -323,7 +323,7 @@ public class CallHome implements Callable<String> {
     }
 
     /**
-     * This method creates a ClosableHTTPClient with the WSO2 TrustStore as a trust manager.
+     * This method creates a ClosableHTTPClient with the WSO2 TrustStore as the trust manager.
      *
      * @return Returns a ClosableHTTPClient
      * @throws CallHomeException If an error occurs while create a CloseableHttpClient
@@ -365,8 +365,7 @@ public class CallHome implements Callable<String> {
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         try {
             return responseHandler.handleResponse(response);
-        } catch (
-                IOException e) {
+        } catch (IOException e) {
             log.debug("Error while getting the response body from the CloseableHttpResponse");
             throw new CallHomeException("Error while getting the response body from the CloseableHttpResponse", e);
         }
