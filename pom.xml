@@ -100,8 +100,8 @@
                         <Import-Package>
                             org.wso2.carbon.base.api; version="[1.0.0,2.0.0)",
                             org.osgi.framework; version="[1.9,2.0)",
-                            org.wso2.carbon.core; version="[4.5.0,4.6.0)",
-                            org.wso2.carbon.utils; version="[4.5.0,4.6.0)",
+                            org.wso2.carbon.core; version="[4.5.0,5.0.0)",
+                            org.wso2.carbon.utils; version="[4.5.0,5.0.0)",
                             org.apache.commons.logging,
                             org.osgi.service.component; version="[1.2.0,2.0.0)",
                         </Import-Package>
