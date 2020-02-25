@@ -20,7 +20,8 @@ package org.wso2.callhome.internal;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * This class is used to extract data about the updates response and will be sent in the response.
+ * This class is used to extract data about the trial subscription.
+ *
  * @since 1.0.4
  */
 public class TrialSubscriptionInfo {
