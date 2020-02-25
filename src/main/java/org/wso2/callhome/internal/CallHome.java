@@ -17,7 +17,6 @@
  */
 package org.wso2.callhome.internal;
 
-import com.google.gson.Gson;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.ResponseHandler;
@@ -38,7 +37,6 @@ import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -418,27 +416,23 @@ class CallHome implements Callable<String> {
     }
 
     /**
-     * This method retrieves the trial subscription ID.
+     * This method returns the trial subscription id.
      *
-     * @return Returns the trial subscription ID if available
-     * @throws CallHomeException If an error occurs while retrieving the trial subscription ID
+     * @return Trial subscription id
+     * @throws CallHomeException If unable to read the content of the trialSubscriptionId.txt
      */
     private String getTrialSubscriptionId() throws CallHomeException {
 
-        Path updatesConfigFilePath = Paths.get(carbonProductHome, "updates", "config.json");
-        String trialSubscriptionId = "";
-        if (Files.exists(updatesConfigFilePath)) {
-            try (InputStream inputStream = new FileInputStream(String.valueOf(updatesConfigFilePath))) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                TrialSubscriptionInfo trialSubscriptionInfo =
-                        new Gson().fromJson(bufferedReader, TrialSubscriptionInfo.class);
-                trialSubscriptionId = trialSubscriptionInfo.getTrialSubscriptionId();
+        Path trialSubscriptionIdPath = Paths.get(getProductHome(), "updates", "trialSubscriptionId.txt");
+        byte[] trialSubscriptionId = new byte[0];
+        if (Files.exists(trialSubscriptionIdPath)) {
+            try {
+                trialSubscriptionId = Files.readAllBytes(trialSubscriptionIdPath);
             } catch (IOException e) {
-                log.debug("Error while retrieving trial subscription ID");
-                throw new CallHomeException("Error while retrieving trial subscription ID", e);
+                log.debug("Unable to read the trialSubscriptionId.txt content");
+                throw new CallHomeException("Unable to read the trialSubscriptionId.txt content", e);
             }
         }
-        return trialSubscriptionId;
+        return new String(trialSubscriptionId, StandardCharsets.UTF_8).trim();
     }
 }
