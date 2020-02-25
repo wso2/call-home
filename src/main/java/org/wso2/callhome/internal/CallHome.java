@@ -17,6 +17,7 @@
  */
 package org.wso2.callhome.internal;
 
+import com.google.gson.Gson;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.ResponseHandler;
@@ -37,6 +38,7 @@ import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -110,6 +112,7 @@ class CallHome implements Callable<String> {
 
             String productName = extractProductName(productNameAndVersion);
             String productVersion = extractProductVersion(productNameAndVersion);
+            String trialSubscriptionId = getTrialSubscriptionId();
 
             ExtractedInfo extractedInfo = new ExtractedInfo();
             extractedInfo.setChannel(channel);
@@ -117,6 +120,7 @@ class CallHome implements Callable<String> {
             extractedInfo.setProductVersion(productVersion);
             extractedInfo.setOperatingSystem(operatingSystem);
             extractedInfo.setUpdateLevel(updateLevel);
+            extractedInfo.setTrialSubscriptionId(trialSubscriptionId);
 
             return retrieveUpdateInfoFromServer(extractedInfo);
         } catch (CallHomeException e) {
@@ -300,6 +304,7 @@ class CallHome implements Callable<String> {
         String productVersion = extractedInfo.getProductVersion();
         String operatingSystem = extractedInfo.getOperatingSystem();
         String channel = extractedInfo.getChannel();
+        String trialSubscriptionId = extractedInfo.getTrialSubscriptionId();
         long updateLevel = extractedInfo.getUpdateLevel();
         try {
             return new URL(CALL_HOME_ENDPOINT +
@@ -307,7 +312,8 @@ class CallHome implements Callable<String> {
                     "&product-version=" + URLEncoder.encode(productVersion, "UTF-8") +
                     "&operating-system=" + URLEncoder.encode(operatingSystem, "UTF-8") +
                     "&updates-level=" + URLEncoder.encode(String.valueOf(updateLevel), "UTF-8") +
-                    "&channel=" + URLEncoder.encode(channel, "UTF-8"));
+                    "&channel=" + URLEncoder.encode(channel, "UTF-8") +
+                    "&trial-subscription-id=" + URLEncoder.encode(trialSubscriptionId, "UTF-8"));
         } catch (MalformedURLException e) {
             log.debug("Error while creating URL for the CallHome endpoint " + e.getMessage());
             throw new CallHomeException("Error while creating URL for the CallHome endpoint", e);
@@ -409,5 +415,30 @@ class CallHome implements Callable<String> {
             log.debug("Error while creating a CloseableHttpClient");
         }
         throw new CallHomeException("Unable to retrieve updates information from server");
+    }
+
+    /**
+     * This method retrieves the trial subscription ID.
+     *
+     * @return Returns the trial subscription ID if available
+     * @throws CallHomeException If an error occurs while retrieving the trial subscription ID
+     */
+    private String getTrialSubscriptionId() throws CallHomeException {
+
+        Path updatesConfigFilePath = Paths.get(carbonProductHome, "updates", "config.json");
+        String trialSubscriptionId = "";
+        if (Files.exists(updatesConfigFilePath)) {
+            try (InputStream inputStream = new FileInputStream(String.valueOf(updatesConfigFilePath))) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                TrialSubscriptionInfo trialSubscriptionInfo =
+                        new Gson().fromJson(bufferedReader, TrialSubscriptionInfo.class);
+                trialSubscriptionId = trialSubscriptionInfo.getTrialSubscriptionId();
+            } catch (IOException e) {
+                log.debug("Error while retrieving trial subscription ID");
+                throw new CallHomeException("Error while retrieving trial subscription ID", e);
+            }
+        }
+        return trialSubscriptionId;
     }
 }

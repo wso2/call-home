@@ -28,6 +28,7 @@ public class ExtractedInfo {
     private String productName;
     private String productVersion;
     private String operatingSystem;
+    private String trialSubscriptionId;
     private long updateLevel;
 
     public String getChannel() {
@@ -68,6 +69,16 @@ public class ExtractedInfo {
     public void setOperatingSystem(String operatingSystem) {
 
         this.operatingSystem = operatingSystem;
+    }
+
+    public String getTrialSubscriptionId() {
+
+        return trialSubscriptionId;
+    }
+
+    public void setTrialSubscriptionId(String trialSubscriptionId) {
+
+        this.trialSubscriptionId = trialSubscriptionId;
     }
 
     public long getUpdateLevel() {
