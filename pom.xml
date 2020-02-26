@@ -24,7 +24,7 @@
     <groupId>org.wso2.carbon.callhome</groupId>
     <artifactId>callhome</artifactId>
     <name>Call Home Client</name>
-    <version>4.5.x_1.0.2-SNAPSHOT</version>
+    <version>4.4.x_1.0.4-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <modelVersion>4.0.0</modelVersion>
 
