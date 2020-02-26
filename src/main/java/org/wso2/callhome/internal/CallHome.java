@@ -115,6 +115,7 @@ public class CallHome implements Callable<String> {
 
             String productName = extractProductName(productNameAndVersion);
             String productVersion = extractProductVersion(productNameAndVersion);
+            String trialSubscriptionId = getTrialSubscriptionId();
 
             ExtractedInfo extractedInfo = new ExtractedInfo();
             extractedInfo.setChannel(channel);
@@ -122,6 +123,7 @@ public class CallHome implements Callable<String> {
             extractedInfo.setProductVersion(productVersion);
             extractedInfo.setOperatingSystem(operatingSystem);
             extractedInfo.setUpdateLevel(updateLevel);
+            extractedInfo.setTrialSubscriptionId(trialSubscriptionId);
 
             return retrieveUpdateInfoFromServer(extractedInfo);
         } catch (CallHomeException e) {
@@ -305,6 +307,7 @@ public class CallHome implements Callable<String> {
         String productVersion = extractedInfo.getProductVersion();
         String operatingSystem = extractedInfo.getOperatingSystem();
         String channel = extractedInfo.getChannel();
+        String trialSubscriptionId = extractedInfo.getTrialSubscriptionId();
         long updateLevel = extractedInfo.getUpdateLevel();
         try {
             return new URL(CALL_HOME_ENDPOINT +
@@ -312,7 +315,8 @@ public class CallHome implements Callable<String> {
                     "&product-version=" + URLEncoder.encode(productVersion, "UTF-8") +
                     "&operating-system=" + URLEncoder.encode(operatingSystem, "UTF-8") +
                     "&updates-level=" + URLEncoder.encode(String.valueOf(updateLevel), "UTF-8") +
-                    "&channel=" + URLEncoder.encode(channel, "UTF-8"));
+                    "&channel=" + URLEncoder.encode(channel, "UTF-8") +
+                    "&trial-subscription-id=" + URLEncoder.encode(trialSubscriptionId, "UTF-8"));
         } catch (MalformedURLException e) {
             log.debug("Error while creating URL for the CallHome endpoint " + e.getMessage());
             throw new CallHomeException("Error while creating URL for the CallHome endpoint", e);
@@ -448,4 +452,26 @@ public class CallHome implements Callable<String> {
         callHomeComponentThread.setName("callHomeComponentThread");
         callHomeComponentThread.start();
     }
+
+    /**
+     * This method returns the trial subscription id.
+     *
+     * @return Trial subscription id
+     * @throws CallHomeException If unable to read the content of the trialSubscriptionId.txt
+     */
+    private String getTrialSubscriptionId() throws CallHomeException {
+
+        Path trialSubscriptionIdPath = Paths.get(getProductHome(), "updates", "trialSubscriptionId.txt");
+        byte[] trialSubscriptionId = new byte[0];
+        if (Files.exists(trialSubscriptionIdPath)) {
+            try {
+                trialSubscriptionId = Files.readAllBytes(trialSubscriptionIdPath);
+            } catch (IOException e) {
+                log.debug("Unable to read the trialSubscriptionId.txt content");
+                throw new CallHomeException("Unable to read the trialSubscriptionId.txt content", e);
+            }
+        }
+        return new String(trialSubscriptionId, StandardCharsets.UTF_8).trim();
+    }
+
 }
