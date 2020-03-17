@@ -69,7 +69,6 @@ public class Util {
             String productNameAndVersion = getProductNameAndVersion();
             long updateLevel = getUpdateLevel();
             String channel = getChannelFromConfigYaml();
-
             String productName = extractProductName(productNameAndVersion);
             String productVersion = extractProductVersion(productNameAndVersion);
             String trialSubscriptionId = getTrialSubscriptionId();
@@ -101,8 +100,7 @@ public class Util {
      * @return A CallHomeInfo object
      */
     public static CallHomeInfo createDefaultCallHomeInfo(String productName, String productVersion,
-                                                         String trustStoreLocation,
-                                                         String trustStorePassword) {
+                                                         String trustStoreLocation, String trustStorePassword) {
 
         CallHomeInfo callHomeInfo = new CallHomeInfo();
         callHomeInfo.setProductName(productName);
