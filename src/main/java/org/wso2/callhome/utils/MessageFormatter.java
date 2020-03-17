@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 /**
  * The {@link MessageFormatter} class helps to print the formatted message.
  *
- * @since 1.0.2
+ * @since 1.0.0
  */
 public class MessageFormatter {
 
