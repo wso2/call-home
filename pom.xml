@@ -25,7 +25,7 @@
     <groupId>org.wso2.carbon.callhome</groupId>
     <artifactId>core</artifactId>
     <name>Call Home Core</name>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <modelVersion>4.0.0</modelVersion>
 
