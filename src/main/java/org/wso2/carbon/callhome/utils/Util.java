@@ -24,6 +24,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * This is the Util class.
+ */
 public class Util {
 
     /**
@@ -34,15 +37,13 @@ public class Util {
     public static String getProductHome() {
 
         String carbonProductHome;
-
         carbonProductHome = CarbonUtils.getCarbonHome();
         Path updatesDirPath = Paths.get(carbonProductHome, "updates");
+
         if (!Files.isDirectory(updatesDirPath)) {
             File file = new File(carbonProductHome);
             carbonProductHome = String.valueOf(file.getParentFile().getParentFile());
         }
-
         return carbonProductHome;
     }
-
 }
