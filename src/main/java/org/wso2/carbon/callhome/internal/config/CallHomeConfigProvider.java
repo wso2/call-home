@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.callhome.internal.config;
+package org.wso2.carbon.callhome.internal.config;
 
 import org.wso2.carbon.config.ConfigurationUtils;
 import org.wso2.carbon.config.annotation.Configuration;

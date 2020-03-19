@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.callhome.internal;
+package org.wso2.carbon.callhome.internal;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -25,6 +25,11 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.callhome.CallHomeExecutor;
+import org.wso2.callhome.utils.CallHomeInfo;
+import org.wso2.callhome.utils.Util;
+import org.wso2.carbon.callhome.internal.config.CallHomeConfigProvider;
+import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
 import org.wso2.carbon.kernel.CarbonServerInfo;
 
@@ -39,13 +44,25 @@ import org.wso2.carbon.kernel.CarbonServerInfo;
 )
 public class CallHomeComponent {
 
-    private static final Logger logger = LoggerFactory.getLogger(CallHome.class);
+    private static final Logger logger = LoggerFactory.getLogger(CallHomeComponent.class);
 
     @Activate
     public void activate() {
 
-        CallHome callHome = new CallHome();
-        callHome.execute();
+        ConfigProvider configProvider = DataHolder.getInstance().getConfigProvider();
+        CallHomeConfigProvider callHomeConfigProvider;
+
+        try {
+            callHomeConfigProvider = configProvider.getConfigurationObject(CallHomeConfigProvider.class);
+            String trustStoreLocation = callHomeConfigProvider.getTrustStorePath();
+            String trustStorePassword = callHomeConfigProvider.getTrustStorePassword();
+            String productHome = org.wso2.carbon.callhome.utils.Util.getProductHome();
+            CallHomeInfo callHomeInfo = Util.createCallHomeInfo(productHome, trustStoreLocation, trustStorePassword);
+            CallHomeExecutor.execute(callHomeInfo);
+        } catch (ConfigurationException e) {
+            logger.debug("Error while activating CallHome component.");
+        }
+        CallHomeExecutor.printMessage();
     }
 
     @Deactivate
