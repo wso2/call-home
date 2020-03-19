@@ -56,29 +56,35 @@ public class CallHomeExecutor {
      */
     public static void printMessage() {
 
-        Future<String> callHomeResponse = DataHolder.getInstance().getResponse();
-
         Thread callHomeThread = new Thread(() -> {
-            if (callHomeResponse != null) {
-                try {
-                    String response = callHomeResponse.get(CALL_HOME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                    if (!response.isEmpty()) {
-                        String formattedMessage = MessageFormatter.formatMessage(response, LINE_LENGTH);
-                        log.info(formattedMessage);
-                    }
-                } catch (InterruptedException e) {
-                    log.debug("CallHome is interrupted", e);
-                } catch (ExecutionException e) {
-                    log.debug("CallHome execution failure", e);
-                } catch (TimeoutException e) {
-                    log.debug("CallHome did not complete in expected time", e);
-                }
-            } else {
-                log.debug("CallHome response is not available");
-            }
+            String message = getMessage();
+            String formattedMessage = MessageFormatter.formatMessage(message, LINE_LENGTH);
+            log.info(formattedMessage);
         });
         callHomeThread.setDaemon(true);
         callHomeThread.setName("callHomeThread");
         callHomeThread.start();
+    }
+
+    /**
+     * This method is used to get the CallHome message.
+     *
+     * @return Returns the CallHome message
+     */
+    public static String getMessage() {
+
+        Future<String> callHomeResponse = DataHolder.getInstance().getResponse();
+        String response = "";
+        if (callHomeResponse != null) {
+            try {
+
+                response = callHomeResponse.get(CALL_HOME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                log.debug("Error while getting message");
+            }
+        }
+        return response;
+
     }
 }
