@@ -15,11 +15,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.callhome.internal;
+package org.wso2.carbon.callhome.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.wso2.callhome.CallHomeExecutor;
+import org.wso2.callhome.utils.CallHomeInfo;
+import org.wso2.callhome.utils.Util;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 
 /**
@@ -31,16 +34,20 @@ import org.wso2.carbon.base.api.ServerConfigurationService;
 public class CallHomeComponent {
 
     private static final Log log = LogFactory.getLog(CallHomeComponent.class);
+    private static final String TRUSTSTORE_LOCATION = "Security.TrustStore.Location";
+    private static final String TRUSTSTORE_PASSWORD = "Security.TrustStore.Password";
 
     protected void activate(ComponentContext componentContext) {
 
-        try {
-            log.debug("Activating CallHomeComponent");
-            CallHome callHome = new CallHome();
-            callHome.execute();
-        } catch (Throwable e) {
-            log.error("Failed to activate CallHomeComponent.", e);
-        }
+        ServerConfigurationService serverConfigurationService =
+                DataHolder.getInstance().getServerConfigurationService();
+
+        String productHome = org.wso2.carbon.callhome.utils.Util.getProductHome();
+        String trustStoreLocation = serverConfigurationService.getFirstProperty(TRUSTSTORE_LOCATION);
+        String trustStorePassword = serverConfigurationService.getFirstProperty(TRUSTSTORE_PASSWORD);
+
+        CallHomeInfo callHomeInfo = Util.createCallHomeInfo(productHome, trustStoreLocation, trustStorePassword);
+        CallHomeExecutor.execute(callHomeInfo);
     }
 
     protected void deactivate() {
