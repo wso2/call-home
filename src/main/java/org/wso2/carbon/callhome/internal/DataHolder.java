@@ -15,11 +15,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.callhome.internal;
+package org.wso2.carbon.callhome.internal;
 
 import org.wso2.carbon.base.api.ServerConfigurationService;
-
-import java.util.concurrent.Future;
 
 /**
  * CallHome DataHolder
@@ -29,7 +27,6 @@ import java.util.concurrent.Future;
 class DataHolder {
 
     private static DataHolder instance = new DataHolder();
-    private Future<String> response;
     private ServerConfigurationService serverConfigurationService;
 
     private DataHolder() {
@@ -39,16 +36,6 @@ class DataHolder {
     static DataHolder getInstance() {
 
         return instance;
-    }
-
-    Future<String> getResponse() {
-
-        return response;
-    }
-
-    void setResponse(Future<String> response) {
-
-        this.response = response;
     }
 
     void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
