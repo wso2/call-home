@@ -24,7 +24,7 @@
     <groupId>org.wso2.carbon.callhome</groupId>
     <artifactId>callhome</artifactId>
     <name>Call Home Client</name>
-    <version>6.x.x_1.0.4-SNAPSHOT</version>
+    <version>5.x.x_1.0.5-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <modelVersion>4.0.0</modelVersion>
 
@@ -37,24 +37,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${org.apache.httpcomponents.httpclient}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>${org.apache.httpcomponents.httpcore}</version>
-        </dependency>
-        <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
             <version>${org.eclipse.platform.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>${org.yaml.version}</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.eclipse.osgi</groupId>
@@ -73,16 +58,19 @@
             <artifactId>org.wso2.carbon.core</artifactId>
             <version>${org.wso2.carbon.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.callhome</groupId>
+            <artifactId>core</artifactId>
+            <version>${org.wso2.carbon.callhome.core}</version>
+        </dependency>
     </dependencies>
     <properties>
-        <org.apache.httpcomponents.httpclient>4.5.11</org.apache.httpcomponents.httpclient>
-        <org.apache.httpcomponents.httpcore>4.4.13</org.apache.httpcomponents.httpcore>
         <org.eclipse.platform.version>3.14.0</org.eclipse.platform.version>
-        <org.yaml.version>1.23</org.yaml.version>
         <org.wso2.eclipse.osgi.version>3.11.0.v20160603-1336</org.wso2.eclipse.osgi.version>
         <org.wso2.eclipse.osgi.services.version>3.5.100.v20160504-1419</org.wso2.eclipse.osgi.services.version>
         <org.wso2.carbon.version>5.2.0</org.wso2.carbon.version>
         <carbon.config.version>2.1.16</carbon.config.version>
+        <org.wso2.carbon.callhome.core>1.0.4</org.wso2.carbon.callhome.core>
     </properties>
     <build>
         <plugins>
@@ -109,10 +97,10 @@
                         <Bundle-Vendor>WSO2 Inc</Bundle-Vendor>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Private-Package>
-                            org.wso2.callhome.*
+                            org.wso2.carbon.callhome.*
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.callhome.*
+                            !org.wso2.carbon.callhome.*
                         </Export-Package>
                         <Import-Package>
                             org.wso2.carbon.config.*; version="[2.0.0,3.0.0)",
@@ -122,7 +110,7 @@
                             org.apache.commons.logging,
                         </Import-Package>
                         <Embed-Dependency>
-                            snakeyaml,httpcore,httpclient;scope=compile|runtime;inline=false
+                            core;scope=compile|runtime;inline=false
                         </Embed-Dependency>
                     </instructions>
                 </configuration>
