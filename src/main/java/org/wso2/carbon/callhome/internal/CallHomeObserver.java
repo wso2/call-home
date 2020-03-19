@@ -23,7 +23,7 @@ import org.wso2.carbon.core.ServerStartupObserver;
 /**
  * This method implements ServerStartupObserver
  *
- * @since 1.0.2
+ * @since 1.0.0
  */
 public class CallHomeObserver implements ServerStartupObserver {
 
