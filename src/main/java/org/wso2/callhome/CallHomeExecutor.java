@@ -77,14 +77,11 @@ public class CallHomeExecutor {
         String response = "";
         if (callHomeResponse != null) {
             try {
-
                 response = callHomeResponse.get(CALL_HOME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.debug("Error while getting message");
             }
         }
         return response;
-
     }
 }
