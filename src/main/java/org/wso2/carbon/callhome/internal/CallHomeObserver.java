@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -15,19 +15,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.callhome.exception;
+package org.wso2.carbon.callhome.internal;
+
+import org.wso2.callhome.CallHomeExecutor;
+import org.wso2.carbon.core.ServerStartupObserver;
 
 /**
- * Throws when an error is occurred in the CallHome feature.
+ * This method implements the ServerStartupObserver.
  *
  * @since 1.0.0
  */
-public class CallHomeException extends Exception {
-    public CallHomeException(String message) {
-        super(message);
+public class CallHomeObserver implements ServerStartupObserver {
+
+    @Override
+    public void completingServerStartup() {
+
     }
 
-    public CallHomeException(String message, Throwable cause) {
-        super(message, cause);
+    @Override
+    public void completedServerStartup() {
+
+        CallHomeExecutor.printMessage();
     }
 }
