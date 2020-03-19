@@ -23,7 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * This is a Utl class.
+ * This is a Util class.
  *
  * @since 1.0.5
  */
