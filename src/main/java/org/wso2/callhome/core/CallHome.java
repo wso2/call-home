@@ -97,8 +97,7 @@ public class CallHome implements Callable<String> {
 
             return retrieveUpdateInfoFromServer(callHomeInfo);
         } catch (CallHomeException e) {
-            log.warn("Failed to get the number of updates available.");
-            log.debug(e.toString());
+            log.debug("Failed to get the number of updates available." + e.toString());
         }
         return "";
     }

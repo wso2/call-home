@@ -58,8 +58,10 @@ public class CallHomeExecutor {
 
         Thread callHomeThread = new Thread(() -> {
             String message = getMessage();
-            String formattedMessage = MessageFormatter.formatMessage(message, LINE_LENGTH);
-            log.info(formattedMessage);
+            if (!message.isEmpty()) {
+                String formattedMessage = MessageFormatter.formatMessage(message, LINE_LENGTH);
+                log.info(formattedMessage);
+            }
         });
         callHomeThread.setDaemon(true);
         callHomeThread.setName("callHomeThread");
