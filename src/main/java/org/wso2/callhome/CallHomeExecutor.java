@@ -48,7 +48,8 @@ public class CallHomeExecutor {
      */
     public static void execute(CallHomeInfo callHomeInfo) {
 
-        if (!System.getProperty(CARBON_AUTO_UPDATE_CHECK).equals("false")) {
+        if (!(System.getProperty(CARBON_AUTO_UPDATE_CHECK) == null) ||
+                !System.getProperty(CARBON_AUTO_UPDATE_CHECK).equals("false")) {
             CallHome callHome = new CallHome(callHomeInfo);
             callHome.execute();
         }
