@@ -39,6 +39,7 @@ public class CallHomeExecutor {
     private static final Log log = LogFactory.getLog(CallHomeExecutor.class);
     private static final int CALL_HOME_TIMEOUT_SECONDS = 180;
     private static final int LINE_LENGTH = 80;
+    public static final String CARBON_AUTO_UPDATE_CHECK = "carbon.auto.update.check";
 
     /**
      * This method is used to execute the CallHome service.
@@ -47,8 +48,10 @@ public class CallHomeExecutor {
      */
     public static void execute(CallHomeInfo callHomeInfo) {
 
-        CallHome callHome = new CallHome(callHomeInfo);
-        callHome.execute();
+        if (!System.getProperty(CARBON_AUTO_UPDATE_CHECK).equals("false")) {
+            CallHome callHome = new CallHome(callHomeInfo);
+            callHome.execute();
+        }
     }
 
     /**
