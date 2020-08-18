@@ -22,7 +22,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * This class contains information obtained from the Updates Configuration.
  *
- * @since 1.0.0
+ * @since 1.0.7
  */
 public class UpdateConfig {
 
@@ -36,26 +36,32 @@ public class UpdateConfig {
     private String trialSubscriptionId;
 
     public String getUpdateLevel() {
+
         return updateLevel;
     }
 
     public void setUpdateLevel(String updateLevel) {
+
         this.updateLevel = updateLevel;
     }
 
     public String getChannel() {
+
         return channel;
     }
 
     public void setChannel(String channel) {
+
         this.channel = channel;
     }
 
     public String getTrialSubscriptionId() {
+
         return trialSubscriptionId;
     }
 
     public void setTrialSubscriptionId(String trialSubscriptionId) {
+
         this.trialSubscriptionId = trialSubscriptionId;
     }
 }
