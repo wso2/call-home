@@ -17,9 +17,11 @@
  */
 package org.wso2.callhome.utils;
 
+import com.google.gson.Gson;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.callhome.exception.UtilException;
+import org.wso2.callhome.model.UpdateConfig;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -46,6 +48,7 @@ public class Util {
     private static final Log log = LogFactory.getLog(Util.class);
     private static final String FULL = "full";
     private static final String UNKNOWN = "unknown";
+    private static final String UPDATE = "_update";
     private static String carbonProductHome;
 
     /**
@@ -67,11 +70,23 @@ public class Util {
         CallHomeInfo callHomeInfo = new CallHomeInfo();
         try {
             String productNameAndVersion = getProductNameAndVersion();
-            long updateLevel = getUpdateLevel();
-            String channel = getChannelFromConfigYaml();
             String productName = extractProductName(productNameAndVersion);
             String productVersion = extractProductVersion(productNameAndVersion);
-            String trialSubscriptionId = getTrialSubscriptionId();
+
+            long updateLevel;
+            String channel;
+            String trialSubscriptionId;
+
+            UpdateConfig updateConfig = getUpdateConfig();
+            if (updateConfig != null) {
+                updateLevel = Long.parseLong(updateConfig.getUpdateLevel());
+                channel = updateConfig.getChannel();
+                trialSubscriptionId = updateConfig.getTrialSubscriptionId();
+            } else {
+                updateLevel = getUpdateLevel();
+                channel = getChannelFromConfigYaml();
+                trialSubscriptionId = getTrialSubscriptionId();
+            }
 
             callHomeInfo.setProductName(productName);
             callHomeInfo.setProductVersion(productVersion);
@@ -270,5 +285,29 @@ public class Util {
             }
         }
         return new String(trialSubscriptionId, StandardCharsets.UTF_8).trim();
+    }
+
+    /**
+     * This method returns the update configuration values.
+     *
+     * @return Update Configuration values
+     */
+    private static UpdateConfig getUpdateConfig() {
+
+        String updateConfigFilePath = Paths.get(carbonProductHome, "updates", "config.json").toString();
+        Gson gson = new Gson();
+        UpdateConfig config;
+
+        try {
+            InputStream inputStream = new FileInputStream(updateConfigFilePath);
+            Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+            config = gson.fromJson(reader, UpdateConfig.class);
+
+        } catch (IOException e) {
+            log.debug("Unable to read the update config content");
+            log.debug(e.toString());
+            return null;
+        }
+        return config;
     }
 }
