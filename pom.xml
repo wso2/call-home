@@ -39,6 +39,7 @@
         <org.apache.httpcomponents.httpclient>4.5.11</org.apache.httpcomponents.httpclient>
         <org.apache.httpcomponents.httpcore>4.4.13</org.apache.httpcomponents.httpcore>
         <org.yaml.snakeyaml>1.23</org.yaml.snakeyaml>
+        <com.google.code.gson.gson>2.8.5</com.google.code.gson.gson>
     </properties>
 
     <dependencies>
@@ -56,6 +57,11 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>${org.yaml.snakeyaml}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${com.google.code.gson.gson}</version>
         </dependency>
     </dependencies>
     <build>
