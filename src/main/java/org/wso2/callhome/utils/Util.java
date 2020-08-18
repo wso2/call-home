@@ -239,8 +239,12 @@ public class Util {
         long lastUpdateLevel = 0L;
         for (File listOfFile : listOfFiles) {
             if (listOfFile.isFile()) {
-                if (Long.parseLong(listOfFile.getName()) > lastUpdateLevel) {
-                    lastUpdateLevel = Long.parseLong(listOfFile.getName());
+                String fileName = listOfFile.getName();
+                if (fileName.contains(UPDATE)) {
+                    fileName = fileName.replace(UPDATE, "");
+                }
+                if (Long.parseLong(fileName) > lastUpdateLevel) {
+                    lastUpdateLevel = Long.parseLong(fileName);
                 }
             }
         }
