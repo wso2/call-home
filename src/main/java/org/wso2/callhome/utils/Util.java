@@ -302,7 +302,6 @@ public class Util {
             InputStream inputStream = new FileInputStream(updateConfigFilePath);
             Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
             config = gson.fromJson(reader, UpdateConfig.class);
-
         } catch (IOException e) {
             log.debug("Unable to read the update config content");
             log.debug(e.toString());
