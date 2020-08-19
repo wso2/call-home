@@ -18,6 +18,9 @@
 package org.wso2.carbon.callhome.internal;
 
 import org.wso2.callhome.CallHomeExecutor;
+import org.wso2.callhome.utils.CallHomeInfo;
+import org.wso2.callhome.utils.Util;
+import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.ServerStartupObserver;
 
 /**
@@ -27,6 +30,9 @@ import org.wso2.carbon.core.ServerStartupObserver;
  */
 public class CallHomeObserver implements ServerStartupObserver {
 
+    private static final String TRUSTSTORE_LOCATION = "Security.TrustStore.Location";
+    private static final String TRUSTSTORE_PASSWORD = "Security.TrustStore.Password";
+
     @Override
     public void completingServerStartup() {
 
@@ -35,6 +41,15 @@ public class CallHomeObserver implements ServerStartupObserver {
     @Override
     public void completedServerStartup() {
 
+        ServerConfigurationService serverConfigurationService =
+                DataHolder.getInstance().getServerConfigurationService();
+
+        String productHome = org.wso2.carbon.callhome.utils.Util.getProductHome();
+        String trustStoreLocation = serverConfigurationService.getFirstProperty(TRUSTSTORE_LOCATION);
+        String trustStorePassword = serverConfigurationService.getFirstProperty(TRUSTSTORE_PASSWORD);
+
+        CallHomeInfo callHomeInfo = Util.createCallHomeInfo(productHome, trustStoreLocation, trustStorePassword);
+        CallHomeExecutor.execute(callHomeInfo);
         CallHomeExecutor.printMessage();
     }
 }
