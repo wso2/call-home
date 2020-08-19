@@ -24,7 +24,7 @@
     <groupId>org.wso2.carbon.callhome</groupId>
     <artifactId>callhome</artifactId>
     <name>Call Home Client</name>
-    <version>6.x.x_1.0.7-SNAPSHOT</version>
+    <version>5.x.x_1.0.8-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <modelVersion>4.0.0</modelVersion>
 
@@ -70,7 +70,7 @@
         <org.wso2.eclipse.osgi.services.version>3.5.100.v20160504-1419</org.wso2.eclipse.osgi.services.version>
         <org.wso2.carbon.version>5.2.0</org.wso2.carbon.version>
         <carbon.config.version>2.1.16</carbon.config.version>
-        <org.wso2.carbon.callhome.core>1.0.6</org.wso2.carbon.callhome.core>
+        <org.wso2.carbon.callhome.core>1.0.7</org.wso2.carbon.callhome.core>
     </properties>
     <build>
         <plugins>
