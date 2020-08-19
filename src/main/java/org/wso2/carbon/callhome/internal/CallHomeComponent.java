@@ -26,9 +26,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.callhome.CallHomeExecutor;
-import org.wso2.callhome.utils.CallHomeInfo;
-import org.wso2.callhome.utils.Util;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 
 /**
@@ -43,33 +40,17 @@ import org.wso2.carbon.base.api.ServerConfigurationService;
 public class CallHomeComponent {
 
     private static final Log log = LogFactory.getLog(CallHomeComponent.class);
-    private static ServerConfigurationService serverConfigurationService = null;
-    private static final String TRUSTSTORE_LOCATION = "Security.TrustStore.Location";
-    private static final String TRUSTSTORE_PASSWORD = "Security.TrustStore.Password";
 
     @Activate
     protected void activate(ComponentContext componentContext) {
 
-        ServerConfigurationService serverConfigurationService =
-                DataHolder.getInstance().getServerConfigurationService();
 
-        String productHome = org.wso2.carbon.callhome.utils.Util.getProductHome();
-        String trustStoreLocation = serverConfigurationService.getFirstProperty(TRUSTSTORE_LOCATION);
-        String trustStorePassword = serverConfigurationService.getFirstProperty(TRUSTSTORE_PASSWORD);
-
-        CallHomeInfo callHomeInfo = Util.createCallHomeInfo(productHome, trustStoreLocation, trustStorePassword);
-        CallHomeExecutor.execute(callHomeInfo);
     }
 
     @Deactivate
     protected void deactivate() {
 
         log.debug("Deactivating CallHomeComponent");
-    }
-
-    public ServerConfigurationService getServerConfigurationService() {
-
-        return CallHomeComponent.serverConfigurationService;
     }
 
     @Reference(
