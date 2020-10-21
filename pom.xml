@@ -38,7 +38,7 @@
     <properties>
         <org.apache.httpcomponents.httpclient>4.5.11</org.apache.httpcomponents.httpclient>
         <org.apache.httpcomponents.httpcore>4.4.13</org.apache.httpcomponents.httpcore>
-        <org.yaml.snakeyaml>1.23</org.yaml.snakeyaml>
+        <org.yaml.snakeyaml>1.26</org.yaml.snakeyaml>
         <com.google.code.gson.gson>2.8.5</com.google.code.gson.gson>
     </properties>
 
