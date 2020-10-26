@@ -85,6 +85,10 @@ public class Util {
                 callHomeInfo.setUpdates2(true);
             } else {
                 updateLevel = getUpdateLevel();
+                if (updateLevel == 0L) {
+                    callHomeInfo.setUpdates2(true);
+                    updateLevel = -1;
+                }
                 channel = getChannelFromConfigYaml();
                 trialSubscriptionId = getTrialSubscriptionId();
             }
