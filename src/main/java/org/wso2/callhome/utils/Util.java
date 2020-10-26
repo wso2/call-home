@@ -82,6 +82,7 @@ public class Util {
                 updateLevel = Long.parseLong(updateConfig.getUpdateLevel());
                 channel = updateConfig.getChannel();
                 trialSubscriptionId = updateConfig.getTrialSubscriptionId();
+                callHomeInfo.setUpdates2(true);
             } else {
                 updateLevel = getUpdateLevel();
                 channel = getChannelFromConfigYaml();

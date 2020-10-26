@@ -31,6 +31,7 @@ public class CallHomeInfo {
     private String trustStoreLocation;
     private String trustStorePassword;
     private String operatingSystem;
+    private boolean isUpdates2;
 
     private long updateLevel;
 
@@ -112,5 +113,13 @@ public class CallHomeInfo {
     void setUpdateLevel(long updateLevel) {
 
         this.updateLevel = updateLevel;
+    }
+
+    public boolean isUpdates2() {
+        return isUpdates2;
+    }
+
+    public void setUpdates2(boolean updates2) {
+        isUpdates2 = updates2;
     }
 }

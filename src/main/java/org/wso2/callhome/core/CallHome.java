@@ -62,8 +62,11 @@ public class CallHome implements Callable<String> {
 
     private static final Log log = LogFactory.getLog(CallHome.class);
     private static final String OS_NAME = "os.name";
-    private static final String CALL_HOME_ENDPOINT = "https://api.updates.wso2.com/call-home/v1.0.0/check-updates";
-    private static final String ACCESS_TOKEN = "45ffddfa-281c-36df-9fd0-d806c3f607ca";
+    private static final String CALL_HOME_WUM_ENDPOINT = "https://api.updates.wso2.com/call-home/v1.0.0/check-updates";
+    private static final String CALL_HOME_UPDATES2_ENDPOINT =
+            "https://gateway.api.cloud.wso2.com/t/updateslive/call-home/v1.0.0/check-updates";
+    private static final String WUM_ACCESS_TOKEN = "45ffddfa-281c-36df-9fd0-d806c3f607ca";
+    private static final String UPDATES2_ACCESS_TOKEN = "fada1ad5-7f15-381d-a501-cec560b27699";
     private static final int RETRY_DELAY = 10000;
     private CallHomeInfo callHomeInfo;
 
@@ -127,8 +130,15 @@ public class CallHome implements Callable<String> {
         String channel = callHomeInfo.getChannel();
         String trialSubscriptionId = callHomeInfo.getTrialSubscriptionId();
         long updateLevel = callHomeInfo.getUpdateLevel();
+
+        String callhomeEndpoint;
+        if (callHomeInfo.isUpdates2()) {
+            callhomeEndpoint = CALL_HOME_UPDATES2_ENDPOINT;
+        } else {
+            callhomeEndpoint = CALL_HOME_WUM_ENDPOINT;
+        }
         try {
-            return new URL(CALL_HOME_ENDPOINT +
+            return new URL(callhomeEndpoint +
                     "?product-name=" + URLEncoder.encode(productName, "UTF-8") +
                     "&product-version=" + URLEncoder.encode(productVersion, "UTF-8") +
                     "&operating-system=" + URLEncoder.encode(operatingSystem, "UTF-8") +
@@ -200,7 +210,13 @@ public class CallHome implements Callable<String> {
 
         URL url = constructCallHomeURL(callHomeInfo);
         HttpGet request = new HttpGet(String.valueOf(url));
-        request.addHeader("Authorization", "Bearer " + ACCESS_TOKEN);
+        String accessToken;
+        if (callHomeInfo.isUpdates2()) {
+            accessToken = UPDATES2_ACCESS_TOKEN;
+        } else {
+            accessToken = WUM_ACCESS_TOKEN;
+        }
+        request.addHeader("Authorization", "Bearer " + accessToken);
         request.addHeader("Accept", "application/json");
         request.addHeader("Content-Type", "application/json");
 
